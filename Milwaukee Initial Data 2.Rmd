@@ -1,0 +1,78 @@
+---
+title: "Milwaukee Initial Data"
+author: "Brandon Ristoff"
+date: "9/24/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+setwd("C:/Users/bcris/OneDrive/Desktop")
+library(tidyverse)
+
+load("res_data_w_geo.dta")
+
+resdata <- data.frame(res_data_w_geo)
+
+summary(resdata$SALEDATE) #Two Years of Data
+summary(resdata$SALEPRICE) #Nothing Above $10M
+summary(resdata$ASSESSEDVAL)
+
+#1 : Only Ordinary Sales
+
+#2. Eliminate Implausible Values (<$20k, $10M) and no NA values
+resdata <- filter(resdata, SALEPRICE >= 20000)
+resdata <- filter(resdata, SALEPRICE <= 10000000)
+resdata <- filter(resdata, NUM_BLDS == 1) #Check on this
+
+#https://city.milwaukee.gov/ImageLibrary/Groups/ccClerk/Ordinances/Volume-2/CH295-sub5.pdf
+resdata <- filter(resdata, grepl('R', ZONING))
+
+
+resdata <- filter(resdata, !is.na(resdata$ASSESSEDVAL))
+
+#3. Single Family Homes Only
+
+#4. Eliminate Implausible Assessed-to-Sale Ratios (outside the 1.5xIQR range)
+resdata$atsratio <- resdata$ASSESSEDVAL/resdata$SALEPRICE
+
+quantile(resdata$atsratio)
+
+#5. Adjust for inflation in 2019
+
+#Lower End
+le <- as.numeric(quantile(resdata$atsratio)[2]) - 1.5*IQR(resdata$atsratio)
+#Upper End
+ue <- as.numeric(quantile(resdata$atsratio)[4]) + 1.5*IQR(resdata$atsratio)
+
+resdata <- filter(resdata, atsratio >= le)
+resdata <- filter(resdata, atsratio <= ue)
+
+summary(resdata$atsratio)
+
+#5. How to Account for Sales Chasing
+
+```
+
+## Summaries
+
+```{r}
+resdata$salesdecile <- ntile(resdata$SALEPRICE, 10) 
+resdata$salesquintile <- ntile(resdata$SALEPRICE, 5) 
+
+tapply(resdata$atsratio, resdata$salesdecile, summary)
+tapply(resdata$atsratio, resdata$salesquintile, summary)
+
+tapply(resdata$SALEPRICE, resdata$salesdecile, summary)
+
+# Geo Tract
+summary(as.factor(resdata$GEO_TRACT))
+
+tapply(resdata$atsratio, resdata$GEO_TRACT, mean)
+
+```
+
