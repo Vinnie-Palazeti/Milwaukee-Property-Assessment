@@ -10,13 +10,29 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+Library
+#install.packages("sf")
 ```{r}
-setwd("C:/Users/bcris/OneDrive/Desktop")
 library(tidyverse)
+library(ggplot2)
+library(sf)
+```
 
+```{r}
+#setwd("C:/Users/bcris/OneDrive/Desktop")
+setwd("C:/Users/Vinnie/Documents")
+
+
+# Assign Census Data
+popdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Data.csv")
+
+# Assign Assessment Data
 load("res_data_w_geo.dta")
 
 resdata <- data.frame(res_data_w_geo)
+
+# SQL Left Join Census Data
+resdata <- resdata %>% left_join(popdat, by = "GEO_TRACT")
 
 summary(resdata$SALEDATE) #Two Years of Data
 summary(resdata$SALEPRICE) #Nothing Above $10M
@@ -32,7 +48,15 @@ resdata <- filter(resdata, NUM_BLDS == 1) #Check on this
 #https://city.milwaukee.gov/ImageLibrary/Groups/ccClerk/Ordinances/Volume-2/CH295-sub5.pdf
 resdata <- filter(resdata, grepl('R', ZONING))
 
+# Colin recommended removing Type 11,13,14, & 22
+# Values not present in data
+unique(resdata$TYPE)
 
+# Majority are NA
+resdata %>% 
+  filter(is.na(TYPE))
+
+# Remove one observation missing Assessment Value
 resdata <- filter(resdata, !is.na(resdata$ASSESSEDVAL))
 
 #3. Single Family Homes Only
@@ -55,24 +79,203 @@ resdata <- filter(resdata, atsratio <= ue)
 summary(resdata$atsratio)
 
 #5. How to Account for Sales Chasing
+```
+
+Census Demographics
+```{r}
+resdata <- resdata %>% 
+  mutate(
+        # Racial Demographics
+        Percent_Black = BLACK.POP/TOTAL.POP,
+        Majority_Black = ifelse(Percent_Black > 0.5,1,0),
+        Percent_White = WHITE.POP/TOTAL.POP,
+        Majority_White = ifelse(Percent_White > 0.5,1,0),
+        Percent_Hispanic = TOTAL.HISPANIC.POP/TOTAL.POP,
+        Majority_Hispanic = ifelse(Percent_Hispanic > 0.5,1,0),
+        
+        # Socio-Economic
+        Percent_Renter = RENTER.OCCUPIED.HOUSING.UNITS/TOTAL.POP.IN.HOUSING.UNITS,
+        Majority_Renter = ifelse(Percent_Renter > 0.5,1,0)
+        )
 
 ```
 
 ## Summaries
 
 ```{r}
-resdata$salesdecile <- ntile(resdata$SALEPRICE, 10) 
-resdata$salesquintile <- ntile(resdata$SALEPRICE, 5) 
 
+# Sale Price Decile & Quintiles
+resdata$salesdecile <- ntile(resdata$SALEPRICE, 10) 
+resdata$salesquintile <- ntile(resdata$SALEPRICE, 5)
+# Assess Ratio by Sales Decile & Quintile
 tapply(resdata$atsratio, resdata$salesdecile, summary)
 tapply(resdata$atsratio, resdata$salesquintile, summary)
-
+# Sales Prices in Deciles
 tapply(resdata$SALEPRICE, resdata$salesdecile, summary)
+
+
+# Percent Black Quartiles
+resdata$blackquintile <- ntile(resdata$Percent_Black,5)
+# Assess Ratio by Percent Black Quintile
+tapply(resdata$atsratio,resdata$blackquintile, summary)
+
+
+# Percent White Quartiles
+resdata$whitequintile <- ntile(resdata$Percent_White,5)
+# Assess Ratio by Percent White Quintile
+tapply(resdata$atsratio,resdata$whitequintile, summary)
+
+
+# Percent Renter Quartiles
+resdata$renterquintile <- ntile(resdata$Percent_Renter,5)
+# Assess Ratio by Percent Renter Quintile
+tapply(resdata$atsratio,resdata$renterquintile, summary)
+
+
+Maj_Black <- resdata %>%
+  filter(Majority_Black == 1)
+mean(Maj_Black$atsratio)
+
+
+Maj_White <- resdata %>%
+  filter(Majority_White == 1)
+mean(Maj_White$atsratio)
+
+# only a 2% difference in Black & White Neighborhoods
+(mean(Maj_White$atsratio)-mean(Maj_Black$atsratio))/mean(Maj_White$atsratio)*100
+
 
 # Geo Tract
 summary(as.factor(resdata$GEO_TRACT))
-
 tapply(resdata$atsratio, resdata$GEO_TRACT, mean)
 
+
+```
+
+
+Visuals
+```{r}
+p1 <- ggplot(resdata, aes(x=MEDIAN.INCOME)) + 
+  geom_density()
+
+p1 +geom_vline(aes(xintercept=mean(MEDIAN.INCOME)),
+            color="blue", linetype="dashed", size=1)
+
+
+# Fat Tails
+p2 <- ggplot(resdata, aes(x=atsratio)) + 
+  geom_density()
+
+p2 +geom_vline(aes(xintercept=mean(atsratio)),
+            color="blue", linetype="dashed", size=1)
+
+
+# Right Tail Distribution 
+#temp <- resdata %>% filter(SALEPRICE < 1000000) still right tailed even if you get rid of 14 mil observation
+p3 <- ggplot(resdata, aes(x=SALEPRICE)) + 
+  geom_density()
+
+p3 +geom_vline(aes(xintercept=mean(SALEPRICE)),
+            color="blue", linetype="dashed", size=1)
+
+
+
+p4 <- ggplot(resdata, aes(x=Percent_Renter)) + 
+  geom_density()
+
+p4 +geom_vline(aes(xintercept=mean(Percent_Renter)),
+            color="blue", linetype="dashed", size=1)
+
+
+
+p5 <- ggplot(resdata, aes(x=Percent_Black)) + 
+  geom_density()
+
+p5 +geom_vline(aes(xintercept=mean(Percent_Black)),
+            color="blue", linetype="dashed", size=1)
+
+
+
+p6 <- ggplot(resdata, aes(x=Percent_White)) + 
+  geom_density()
+
+p6 +geom_vline(aes(xintercept=mean(Percent_White)),
+            color="blue", linetype="dashed", size=1)
+
+```
+
+
+
+Shapefile
+```{r}
+Mil_County<-st_read("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census_Tracts.shp")
+#Makeup
+st_geometry_type(Mil_County)
+#Coordinate Reference System
+st_crs(Mil_County)
+#World Geodetic System 1984
+
+
+Mil_County2 <- Mil_County %>%
+  filter(OBJECTID != 263) %>%
+  rename(GEO_TRACT = Tract_ID_I)
+
+ggplot() + 
+  geom_sf(data = Mil_County2, color = "black", fill = "pink") + 
+  ggtitle("Milwaukee!") + 
+  coord_sf()
+
+data.frame(Mil_County2)
+```
+
+# this doesnt work yet. Need to be able to join data to the shapefile. not sure how atm.
+```{r}
+resdata <- resdata %>% left_join(Mil_County2, by = "GEO_TRACT")
+
+ggplot() + 
+  geom_sf(data = resdata, color = "black", fill = "pink") + 
+  ggtitle("Milwaukee!") + 
+  coord_sf()
+```
+
+
+
+
+# Another Method of Grabbing Maps
+
+```{r}
+library(tidyverse)
+library(tidycensus)
+library(sf)
+library(tigris)
+#you need to let R know to bring in the spatial data as sf objects
+options(tigris_class = "sf")
+#library(tmap)
+```
+
+
+
+```{r}
+#census_api_key("d4223dab8dbc2a3dd81afcedb9f3d52c8ad2d47d")
+
+wi.tracts <- get_acs(geography = "tract", 
+              year = 2018,
+              variables = c(medincome = "B19013_001", 
+                            fb = "B05012_003", totp = "B05012_001"), 
+              state = "WI",
+              survey = "acs5",
+              geometry = TRUE)
+```
+
+
+```{r}
+wi.tracts <- wi.tracts %>%
+              select(-(moe)) %>%
+            spread(key = variable, value = estimate) %>%
+            mutate(pfb = fb/totp) %>%
+  filter(grepl("Milwaukee County",NAME))
+  
+
+ggplot(wi.tracts) + geom_sf()
 ```
 
