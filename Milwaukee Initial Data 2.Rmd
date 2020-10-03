@@ -19,8 +19,8 @@ library(sf)
 ```
 
 ```{r}
-#setwd("C:/Users/bcris/OneDrive/Desktop")
-setwd("C:/Users/Vinnie/Documents")
+setwd("C:/Users/bcris/OneDrive/Desktop")
+#setwd("C:/Users/Vinnie/Documents")
 
 
 # Assign Census Data
@@ -49,6 +49,8 @@ resdata <- filter(resdata, NUM_BLDS == 1) #Check on this
 resdata <- filter(resdata, grepl('R', ZONING))
 
 # Colin recommended removing Type 11,13,14, & 22
+resdata <- filter(resdata, BLDTYPE != "11 - Duplex O/S" & BLDTYPE != "13 - Duplex-Cottage" & BLDTYPE != "14 - Multiple Residential Bldgs" & BLDTYPE != "22 - Dplx Bungalow")
+
 # Values not present in data
 unique(resdata$TYPE)
 
@@ -79,9 +81,10 @@ resdata <- filter(resdata, atsratio <= ue)
 summary(resdata$atsratio)
 
 #5. How to Account for Sales Chasing
+# Don't Need To
 ```
 
-Census Demographics
+## Census Demographics
 ```{r}
 resdata <- resdata %>% 
   mutate(
