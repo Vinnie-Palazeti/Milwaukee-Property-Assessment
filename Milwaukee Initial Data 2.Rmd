@@ -107,6 +107,8 @@ resdata <- resdata %>%
 # Sale Price Decile & Quintiles
 resdata$salesdecile <- ntile(resdata$SALEPRICE, 10) 
 resdata$salesquintile <- ntile(resdata$SALEPRICE, 5)
+
+
 # Assess Ratio by Sales Decile & Quintile
 tapply(resdata$atsratio, resdata$salesdecile, summary)
 tapply(resdata$atsratio, resdata$salesquintile, summary)
@@ -114,12 +116,14 @@ tapply(resdata$atsratio, resdata$salesquintile, summary)
 tapply(resdata$SALEPRICE, resdata$salesdecile, summary)
 
 
+
 # Percent Black Quartiles
 resdata$blackquintile <- ntile(resdata$Percent_Black,5)
+resdata$blackdecile <- ntile(resdata$Percent_Black,10)
+
 # Assess Ratio by Percent Black Quintile
 tapply(resdata$atsratio,resdata$blackquintile, summary)
-
-
+tapply(resdata$atsratio,resdata$blackdecile, summary)
 # Percent White Quartiles
 resdata$whitequintile <- ntile(resdata$Percent_White,5)
 # Assess Ratio by Percent White Quintile
@@ -128,12 +132,20 @@ tapply(resdata$atsratio,resdata$whitequintile, summary)
 
 # Percent Renter Quartiles
 resdata$renterquintile <- ntile(resdata$Percent_Renter,5)
+resdata$renterdecile <- ntile(resdata$Percent_Renter,10)
 # Assess Ratio by Percent Renter Quintile
 tapply(resdata$atsratio,resdata$renterquintile, summary)
+tapply(resdata$atsratio,resdata$renterdecile, summary)
+
 
 
 # Income Deciles
 resdata$IncomeDecile <- ntile(resdata$MEDIAN.INCOME,10)
+
+tapply(resdata$atsratio,resdata$IncomeDecile, summary)
+
+
+
 
 
 Maj_Black <- resdata %>%
@@ -153,6 +165,9 @@ mean(Maj_White$atsratio)
 summary(as.factor(resdata$GEO_TRACT))
 tapply(resdata$atsratio, resdata$GEO_TRACT, mean)
 
+
+
+#resdata %>% filter(IncomeDecile == 10 & salesdecile == 10) %>% select(SALEPRICE,ASSESSEDVAL)
 
 ```
 
@@ -235,11 +250,13 @@ ggplot() +
 
 
 ```{r}
+
+Remove <- setdiff(Mil_County2$GEO_TRACT,resdata$GEO_TRACT)
+
 temp <- Mil_County2 %>% 
   left_join(resdata, by = "GEO_TRACT") #%>%
   #filter(!GEO_TRACT %in% Remove)
 
-Remove <- setdiff(Mil_County2$GEO_TRACT,resdata$GEO_TRACT)
 
 ```
 
