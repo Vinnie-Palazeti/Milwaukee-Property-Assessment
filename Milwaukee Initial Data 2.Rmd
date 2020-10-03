@@ -132,6 +132,10 @@ resdata$renterquintile <- ntile(resdata$Percent_Renter,5)
 tapply(resdata$atsratio,resdata$renterquintile, summary)
 
 
+# Income Deciles
+resdata$IncomeDecile <- ntile(resdata$MEDIAN.INCOME,10)
+
+
 Maj_Black <- resdata %>%
   filter(Majority_Black == 1)
 mean(Maj_Black$atsratio)
@@ -225,20 +229,89 @@ ggplot() +
   ggtitle("Milwaukee!") + 
   coord_sf()
 
-data.frame(Mil_County2)
+
 ```
 
-# this doesnt work yet. Need to be able to join data to the shapefile. not sure how atm.
+
+
 ```{r}
-resdata <- resdata %>% left_join(Mil_County2, by = "GEO_TRACT")
+temp <- Mil_County2 %>% 
+  left_join(resdata, by = "GEO_TRACT") #%>%
+  #filter(!GEO_TRACT %in% Remove)
+
+Remove <- setdiff(Mil_County2$GEO_TRACT,resdata$GEO_TRACT)
+
+```
+
+```{r}
+#resdata <- resdata %>% left_join(Mil_County2, by = "GEO_TRACT")
 
 ggplot() + 
-  geom_sf(data = resdata, color = "black", fill = "pink") + 
+  geom_sf(aes(fill=salesdecile), color='transparent', data = temp) +
+  geom_sf(fill = 'transparent', color='white', data = temp) + 
+  scale_fill_viridis_c(name ='saledecile')+
   ggtitle("Milwaukee!") + 
-  coord_sf()
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank()) + coord_sf()
+
 ```
 
 
+```{r}
+#resdata <- resdata %>% left_join(Mil_County2, by = "GEO_TRACT")
+
+ggplot() + 
+  geom_sf(aes(fill=Percent_Black), color='transparent', data = temp) +
+  geom_sf(fill = 'transparent', color='white', data = temp) + 
+  scale_fill_viridis_c(name ='Percent_Black')+
+  ggtitle("Milwaukee!") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank()) + coord_sf()
+
+```
+
+```{r}
+
+ggplot() + 
+  geom_sf(aes(fill=Percent_White), color='transparent', data = temp) +
+  geom_sf(fill = 'transparent', color='white', data = temp) + 
+  scale_fill_viridis_c(name ='Percent_White')+
+  ggtitle("Milwaukee!") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank()) + coord_sf()
+
+```
+
+
+
+
+```{r}
+
+ggplot() + 
+  geom_sf(aes(fill=IncomeDecile), color='transparent', data = temp) +
+  geom_sf(fill = 'transparent', color='white', data = temp) + 
+  scale_fill_viridis_c(name ='IncomeDecile')+
+  ggtitle("Milwaukee!") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank()) + coord_sf()
+
+```
+
+
+
+
+###
+
+
+
+
+
+###
+
+
+
+
+###
 
 
 # Another Method of Grabbing Maps
