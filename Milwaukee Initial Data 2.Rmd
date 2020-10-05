@@ -19,8 +19,8 @@ library(sf)
 ```
 
 ```{r}
-setwd("C:/Users/bcris/OneDrive/Desktop")
-#setwd("C:/Users/Vinnie/Documents")
+#setwd("C:/Users/bcris/OneDrive/Desktop")
+setwd("C:/Users/Vinnie/Documents")
 
 
 # Assign Census Data
@@ -129,9 +129,10 @@ tapply(resdata$atsratio,resdata$blackquintile, summary)
 tapply(resdata$atsratio,resdata$blackdecile, summary)
 # Percent White Quartiles
 resdata$whitequintile <- ntile(resdata$Percent_White,5)
+resdata$whitedecile <- ntile(resdata$Percent_White,10)
 # Assess Ratio by Percent White Quintile
 tapply(resdata$atsratio,resdata$whitequintile, summary)
-
+tapply(resdata$atsratio,resdata$whitedecile, summary)
 
 # Percent Renter Quartiles
 resdata$renterquintile <- ntile(resdata$Percent_Renter,5)
