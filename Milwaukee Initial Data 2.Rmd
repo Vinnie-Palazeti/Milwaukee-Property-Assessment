@@ -141,7 +141,6 @@ tapply(resdata$atsratio,resdata$renterdecile, summary)
 
 # Income Deciles
 resdata$IncomeDecile <- ntile(resdata$MEDIAN.INCOME,10)
-
 tapply(resdata$atsratio,resdata$IncomeDecile, summary)
 
 
@@ -254,22 +253,32 @@ ggplot() +
 Remove <- setdiff(Mil_County2$GEO_TRACT,resdata$GEO_TRACT)
 
 temp <- Mil_County2 %>% 
-  left_join(resdata, by = "GEO_TRACT") #%>%
+  left_join(resdata, by = "GEO_TRACT") %>%
+  mutate(lighter = ifelse(GEO_TRACT %in% Remove, 1,0))
+
+temp2 <- temp %>% filter(lighter==1)
+#%>%
   #filter(!GEO_TRACT %in% Remove)
 
 
 ```
 
-```{r}
-#resdata <- resdata %>% left_join(Mil_County2, by = "GEO_TRACT")
 
+
+```{r}
 ggplot() + 
   geom_sf(aes(fill=salesdecile), color='transparent', data = temp) +
   geom_sf(fill = 'transparent', color='white', data = temp) + 
-  scale_fill_viridis_c(name ='saledecile')+
-  ggtitle("Milwaukee!") + 
+  geom_sf(fill='grey90', color = 'white',data = temp2)+
+  scale_fill_viridis_c(name ='Sale Decile')+
+  ggtitle("Milwaukee Sale Price Deciles") + 
   theme(axis.text.x = element_blank(),
-        axis.text.y = element_blank()) + coord_sf()
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
+
+ggsave("Sales Decile.png", width = 5.5, height = 7)
 
 ```
 
@@ -280,23 +289,32 @@ ggplot() +
 ggplot() + 
   geom_sf(aes(fill=Percent_Black), color='transparent', data = temp) +
   geom_sf(fill = 'transparent', color='white', data = temp) + 
-  scale_fill_viridis_c(name ='Percent_Black')+
-  ggtitle("Milwaukee!") + 
+  geom_sf(fill='grey90', color = 'white',data = temp2)+
+  scale_fill_viridis_c(name ='Percent Black')+
+  ggtitle("Milwaukee Census Tracts by Percent Black Population") + 
   theme(axis.text.x = element_blank(),
-        axis.text.y = element_blank()) + coord_sf()
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
 
+ggsave("Percent Black Population.png", width = 5.5, height = 7)
 ```
 
 ```{r}
-
 ggplot() + 
   geom_sf(aes(fill=Percent_White), color='transparent', data = temp) +
   geom_sf(fill = 'transparent', color='white', data = temp) + 
-  scale_fill_viridis_c(name ='Percent_White')+
-  ggtitle("Milwaukee!") + 
+  geom_sf(fill='grey90', color = 'white',data = temp2)+
+  scale_fill_viridis_c(name ='Percent White')+
+  ggtitle("Milwaukee Census Tracts by Percent White Population") + 
   theme(axis.text.x = element_blank(),
-        axis.text.y = element_blank()) + coord_sf()
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
 
+ggsave("Percent White Population.png", width = 5.5, height = 7)
 ```
 
 
@@ -307,10 +325,16 @@ ggplot() +
 ggplot() + 
   geom_sf(aes(fill=IncomeDecile), color='transparent', data = temp) +
   geom_sf(fill = 'transparent', color='white', data = temp) + 
-  scale_fill_viridis_c(name ='IncomeDecile')+
-  ggtitle("Milwaukee!") + 
+  geom_sf(fill='grey90', color = 'white',data = temp2)+
+  scale_fill_viridis_c(name ='Income Decile')+
+  ggtitle("Milwaukee Census Tracts by Income Deciles") + 
   theme(axis.text.x = element_blank(),
-        axis.text.y = element_blank()) + coord_sf()
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
+
+ggsave("Income Deciles.png", width = 5.5, height = 7)
 
 ```
 
