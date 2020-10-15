@@ -1,0 +1,46 @@
+---
+title: "Research Goals"
+author: "V & B"
+date: "10/15/2020"
+output: html_document
+---
+
+As a municipal assessor, it is the responsibility of the Milwaukee Assessor’s Office to ensure that
+property assessments are a fair and equitable reflection of the fair market value of each property.
+While the Assessor’s Office does not use racial or socioeconomic demographics as factors in our
+analysis, we have a duty to understand the impact of the real estate market and our assessments on
+the various communities within the city. This duty is even more important in the context of
+Milwaukee’s history of segregation and racial injustice in the housing profession. Communities of
+color and low income communities can be disproportionately affected, intentionally or not, by
+choices made in the overall real estate market and by the valuation methods of the Assessor’s
+Office.
+
+
+Goals: The goals of this project include:
+    1. Identifying how market trends differentially impact communities of color and varying
+       socioeconomic status; and
+      
+    2. Determining whether Milwaukee property assessments change disproportionately
+       according to demographic factors.
+       
+       
+Do we have adequate demograpgic information for milwaukee?
+
+  - white populations
+  - black populations
+  - non white populations
+  - hispanic populations
+  
+  x do not yet have other races * need to see if there is a significant portion
+  
+  
+What are other measures of socio economic status
+  - median income
+  - renter percentage / home ownership
+  
+  
+  
+  
+Notes on Ratio-Income Poverty Measure
+Ratios below 100 percent of the poverty level are below the official poverty definition. Ratios below 50 percent of the poverty level, which means that the income is less than half the poverty threshold, have been described as 'severe poverty'. While those above 100 percent the poverty level, but below 125 percent have been described as 'near poverty'. A larger percentage above the poverty level means the category contains people with higher incomes.
+  
