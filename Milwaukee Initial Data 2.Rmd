@@ -16,6 +16,8 @@ Library
 library(tidyverse)
 library(ggplot2)
 library(sf)
+library(lme4)
+library(lmerTest)
 ```
 
 Assignment Configuration
@@ -91,12 +93,23 @@ summary(resdata$atsratio)
 
 #5. How to Account for Sales Chasing
 # Don't Need To
+
+unique(resdata$BLDTYPE)
+resdata <- resdata %>% mutate(BLDTYPE = ifelse(BLDTYPE == "C018 - Milwaukee Bungalow","18 - Milwaukee Bungalow",BLDTYPE))
+
 ```
 
 ## Census Demographics
 ```{r}
 resdata <- resdata %>% 
   mutate(
+    
+        # Log Sales Price
+        LogSalesPrice = log(SALEPRICE),
+        
+        # Log Median Income
+        LogMedianIncome = log(MEDIAN.INCOME),
+        
         # Racial Demographics
         Percent_Black = BLACK.POP/TOTAL.POP,
         Majority_Black = ifelse(Percent_Black > 0.5,1,0),
@@ -116,6 +129,17 @@ resdata <- resdata %>%
         
         )
 
+
+# Median Neighborhood Price
+info <- resdata %>%
+  group_by(GEO_TRACT) %>%
+  summarise(MedianTractSalesPrice = median(SALEPRICE),
+            LogMedianTractSalesPrice = log(MedianTractSalesPrice))
+
+resdata <- resdata %>% left_join(info, by="GEO_TRACT") %>%
+  mutate(PriceDeviation = (SALEPRICE - MedianTractSalesPrice))
+
+
 ```
 
 ## Summaries
@@ -126,13 +150,8 @@ resdata <- resdata %>%
 resdata$salesdecile <- ntile(resdata$SALEPRICE, 10) 
 resdata$salesquintile <- ntile(resdata$SALEPRICE, 5)
 
+
 # Median Neighborhood Price
-info <- resdata %>%
-  group_by(GEO_TRACT) %>%
-  summarise(MedianTractSalesPrice = median(SALEPRICE))
-
-resdata <- resdata %>% left_join(info, by="GEO_TRACT")
-
 resdata$MedSalesDecile <- ntile(resdata$MedianTractSalesPrice,10)
 tapply(resdata$atsratio, resdata$MedSalesDecile, summary)
 
@@ -216,12 +235,27 @@ tapply(resdata$atsratio, resdata$GEO_TRACT, mean)
 
 ```
 
-
+Fits Following Paper
 ```{r}
-blquant=cut(resdata$Percent_Black, breaks = quantile(resdata$Percent_Black, p=seq(0,1,length.out = 8)), include.lowest = T)
+fitdata <- resdata %>% 
+  select(atsratio,Percent_Black,Percent_Renter,Percent_POPBelowPovIncomeRatio,LogSalesPrice,SALEPRICE,LogMedianIncome,LogMedianTractSalesPrice,PriceDeviation,BLDTYPE,GEO_TRACT)
 
+scaled.dat <- fitdata %>% 
+  select(-c("BLDTYPE","GEO_TRACT")) %>%scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT,
+         BLDTYPE = fitdata$BLDTYPE)
+
+# for some reason Price Deviation blows up the model
+mod1 <- lmer(atsratio ~ LogMedianIncome + Percent_Black + Percent_Renter + Percent_POPBelowPovIncomeRatio + LogMedianTractSalesPrice  + (1|GEO_TRACT), data = fitdata)
+
+summary(mod1)
+anova(mod1)
 
 ```
+
+#blquant=cut(resdata$Percent_Black, breaks = quantile(resdata$Percent_Black, p=seq(0,1,length.out = 8)), include.lowest = T)
 
 
 Visuals
