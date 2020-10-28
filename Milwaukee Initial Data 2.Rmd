@@ -18,14 +18,17 @@ library(ggplot2)
 library(sf)
 ```
 
+Assignment Configuration
 ```{r}
 #setwd("C:/Users/bcris/OneDrive/Desktop")
-#setwd("C:/Users/Vinnie/Documents")
+setwd("C:/Users/Vinnie/Documents")
 
-setwd("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment")
+#setwd("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment")
 
 # Assign Census Data
-#popdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Data.csv")
+popdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Data.csv") %>% select(-c("X"))
+povdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
+
 #popdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Data.csv")
 
 # Assign Assessment Data
@@ -33,8 +36,12 @@ load("res_data_w_geo.dta")
 
 resdata <- data.frame(res_data_w_geo)
 
-# SQL Left Join Census Data
-resdata <- resdata %>% left_join(popdat, by = "GEO_TRACT")
+```
+
+Cleaning
+```{r}
+# Left Join Census Data
+resdata <- resdata %>% left_join(popdat, by = "GEO_TRACT") %>% left_join(povdat, by= "GEO_TRACT")
 
 summary(resdata$SALEDATE) #Two Years of Data
 summary(resdata$SALEPRICE) #Nothing Above $10M
@@ -100,7 +107,13 @@ resdata <- resdata %>%
         
         # Socio-Economic
         Percent_Renter = RENTER.OCCUPIED.HOUSING.UNITS/TOTAL.POP.IN.HOUSING.UNITS,
-        Majority_Renter = ifelse(Percent_Renter > 0.5,1,0)
+        Majority_Renter = ifelse(Percent_Renter > 0.5,1,0),
+        POPBelowPovIncomeRatio = sum(POP.BELOW..50.INCOME.POV.RATIO,POP..50..99.INCOME.POV.RATIO,POP.1.00.1.24.INCOME.POV.RATIO),
+        Percent_POPBelowPovIncomeRatio = POPBelowPovIncomeRatio/TOTAL.POP,
+        Percent_TotalPOPIncomeBelowPovRate = TOTAL.POP.INCOME.BELOW.POV.RATE/TOTAL.POP,
+        Percent_BlackIncomeBelowPovRate = BLACK.POP.INCOME.BELOW.POV.RATE/TOTAL.POP,
+        Percent_WhiteIncomeBelowPovRate = WHITE.POP.INCOME.BELOW.POV.RATE/TOTAL.POP
+        
         )
 
 ```
@@ -113,10 +126,21 @@ resdata <- resdata %>%
 resdata$salesdecile <- ntile(resdata$SALEPRICE, 10) 
 resdata$salesquintile <- ntile(resdata$SALEPRICE, 5)
 
+# Median Neighborhood Price
+info <- resdata %>%
+  group_by(GEO_TRACT) %>%
+  summarise(MedianTractSalesPrice = median(SALEPRICE))
+
+resdata <- resdata %>% left_join(info, by="GEO_TRACT")
+
+resdata$MedSalesDecile <- ntile(resdata$MedianTractSalesPrice,10)
+tapply(resdata$atsratio, resdata$MedSalesDecile, summary)
+
 
 # Assess Ratio by Sales Decile & Quintile
 tapply(resdata$atsratio, resdata$salesdecile, summary)
 tapply(resdata$atsratio, resdata$salesquintile, summary)
+
 # Sales Prices in Deciles
 tapply(resdata$SALEPRICE, resdata$salesdecile, summary)
 
@@ -129,9 +153,11 @@ resdata$blackdecile <- ntile(resdata$Percent_Black,10)
 # Assess Ratio by Percent Black Quintile
 tapply(resdata$atsratio,resdata$blackquintile, summary)
 tapply(resdata$atsratio,resdata$blackdecile, summary)
+
 # Percent White Quartiles
 resdata$whitequintile <- ntile(resdata$Percent_White,5)
 resdata$whitedecile <- ntile(resdata$Percent_White,10)
+
 # Assess Ratio by Percent White Quintile
 tapply(resdata$atsratio,resdata$whitequintile, summary)
 tapply(resdata$atsratio,resdata$whitedecile, summary)
@@ -149,8 +175,22 @@ tapply(resdata$atsratio,resdata$renterdecile, summary)
 resdata$IncomeDecile <- ntile(resdata$MEDIAN.INCOME,10)
 tapply(resdata$atsratio,resdata$IncomeDecile, summary)
 
+# Black Income Poverty Rate
+resdata$BlackIncome_PovertyRateDecile <- ntile(resdata$Percent_BlackIncomeBelowPovRate,10)
+tapply(resdata$atsratio,resdata$BlackIncome_PovertyRateDecile, summary)
+
+# White Income Poverty Rate
+resdata$WhiteIncome_PovertyRateDecile <- ntile(resdata$Percent_WhiteIncomeBelowPovRate,10)
+tapply(resdata$atsratio,resdata$WhiteIncome_PovertyRateDecile, summary)
+
+# Total Population Income Below Poverty Rate
+resdata$TotalPOPIncome_PovertyRateDecile <- ntile(resdata$Percent_TotalPOPIncomeBelowPovRate,10)
+tapply(resdata$atsratio,resdata$TotalPOPIncome_PovertyRateDecile, summary)
 
 
+# Total Population Below Poverty Income Ratio
+resdata$POPIncome_PovertyRatioDecile <- ntile(resdata$POPBelowPovIncomeRatio,10)
+tapply(resdata$atsratio,resdata$POPIncome_PovertyRatioDecile, summary)
 
 
 Maj_Black <- resdata %>%
@@ -173,6 +213,13 @@ tapply(resdata$atsratio, resdata$GEO_TRACT, mean)
 
 
 #resdata %>% filter(IncomeDecile == 10 & salesdecile == 10) %>% select(SALEPRICE,ASSESSEDVAL)
+
+```
+
+
+```{r}
+blquant=cut(resdata$Percent_Black, breaks = quantile(resdata$Percent_Black, p=seq(0,1,length.out = 8)), include.lowest = T)
+
 
 ```
 

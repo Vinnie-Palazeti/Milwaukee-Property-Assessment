@@ -44,3 +44,71 @@ What are other measures of socio economic status
 Notes on Ratio-Income Poverty Measure
 Ratios below 100 percent of the poverty level are below the official poverty definition. Ratios below 50 percent of the poverty level, which means that the income is less than half the poverty threshold, have been described as 'severe poverty'. While those above 100 percent the poverty level, but below 125 percent have been described as 'near poverty'. A larger percentage above the poverty level means the category contains people with higher incomes.
   
+  
+
+
+####### Notes from Main Paper
+
+my regressions will include demographic observables at the Census block group level, as well as fixed effects for cities, parcel districts, school attendance zones, and/or Census tracts.
+
+ I include log median sale price, median age, log median acreage, median stories, and the percentages of
+homes that have above or below “average” CDU (depreciation)25 – for each Census block group
+
+*** For each Group he calculates
+  - log median sale price
+  - median age
+  - log median acreage
+  - median stories
+  - below average CDU (depreciation)
+  
+  
+  
+ Faulk and Hicks (2015: 6) – studying the whole state of Indiana – find
+mean ratios of 2.9287 and 0.8752 for the lowest- and highest priced homes (respectively) in their untrimmed sample, and
+mean ratios of 1.4654 and 0.8597 for the lowest- and highest-priced homes in their trimmed sample. Relative to the
+variation that Faulk and Hicks found, our ratios of 0.9362 and 0.89 for the lowest- and highest-priced homes   
+  
+  
+  *** We see the same trends noted here 
+    - Mean:    .942 - .871
+    - Median:  .953 - .874
+  
+  
+ we saw that the effect of median neighborhood price was the opposite of individual home sale price: a
+higher median price was associated with higher assessment and taxation, while a high sale price was associated with lower
+assessment and taxation. If we control for these two variables simultaneously, the coefficients will be difficult to interpret.
+Therefore, in our regressions, we replace log sale price with the percent deviation of a house’s individual sale price from
+its neighborhood’s median sale.
+
+Thus, rather than separately controlling for individual and average sale prices, we controlfor the average sale price (of each Census block group) and the individual deviations from the average
+
+  *** We seem the same trends
+  *** Ought to take the same percausion & use deviation from median
+  *** He controlled for average sale price of grouping & individual deviations from the average
+  
+  
+  
+  
+  
+  
+Because our variables are all
+measured in different units, all coefficients are standardized. Thus, a one standard deviation change in the independent
+variable is associated with a beta standard deviation change in the dependent variable. 
+
+
+
+  *** Need to scale all predictors
+  
+  
+  
+  
+################# QUESTIONS FOR COLLIN ##########################
+
+In fact, I find that homes in black neighborhoods of Fulton County are consistently under-assessed. This may merely
+indicate lack of discrimination. On the other hand, this could be evidence of a different problem. Banks often rely on
+county assessments when evaluating mortgage applications. If homes in black neighborhoods are under-assessed,
+applicants may face difficulty accessing credit.
+
+************** Future studies should combine data on county assessments with data on
+    private assessments and loans to determine whether county under-assessment impedes access to credit, controlling for sale
+    price.
