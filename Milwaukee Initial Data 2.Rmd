@@ -38,6 +38,8 @@ load("res_data_w_geo.dta")
 
 resdata <- data.frame(res_data_w_geo)
 
+#https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3438838
+
 ```
 
 Cleaning
@@ -101,6 +103,17 @@ resdata <- resdata %>% mutate(BLDTYPE = ifelse(BLDTYPE == "C018 - Milwaukee Bung
 
 ## Census Demographics
 ```{r}
+
+# Median Neighborhood Price
+info <- resdata %>%
+  group_by(GEO_TRACT) %>%
+  summarise(MedianTractSalesPrice = median(SALEPRICE),
+            LogMedianTractSalesPrice = log(MedianTractSalesPrice))
+
+resdata <- resdata %>% left_join(info, by="GEO_TRACT") %>%
+  mutate(PriceDeviation = (SALEPRICE - MedianTractSalesPrice))
+
+
 resdata <- resdata %>% 
   mutate(
     
@@ -109,6 +122,13 @@ resdata <- resdata %>%
         
         # Log Median Income
         LogMedianIncome = log(MEDIAN.INCOME),
+        
+        
+        # Deviation from Sales Price
+        
+        PctSalePriceDiff = (SALEPRICE-MedianTractSalesPrice)/MedianTractSalesPrice,
+        PctSalePriceDiff_Above = ifelse(PctSalePriceDiff > 0, PctSalePriceDiff,0),
+        PctSalePriceDiff_Below = ifelse(PctSalePriceDiff < 0, PctSalePriceDiff,0),
         
         # Racial Demographics
         Percent_Black = BLACK.POP/TOTAL.POP,
@@ -127,32 +147,63 @@ resdata <- resdata %>%
         Percent_BlackIncomeBelowPovRate = BLACK.POP.INCOME.BELOW.POV.RATE/TOTAL.POP,
         Percent_WhiteIncomeBelowPovRate = WHITE.POP.INCOME.BELOW.POV.RATE/TOTAL.POP
         
+        
+        
         )
 
-
-# Median Neighborhood Price
-info <- resdata %>%
-  group_by(GEO_TRACT) %>%
-  summarise(MedianTractSalesPrice = median(SALEPRICE),
-            LogMedianTractSalesPrice = log(MedianTractSalesPrice))
-
-resdata <- resdata %>% left_join(info, by="GEO_TRACT") %>%
-  mutate(PriceDeviation = (SALEPRICE - MedianTractSalesPrice))
 
 
 ```
 
-## Summaries
 
+
+#### Summaries
+
+## Variables
 ```{r}
-
 # Sale Price Decile & Quintiles
 resdata$salesdecile <- ntile(resdata$SALEPRICE, 10) 
 resdata$salesquintile <- ntile(resdata$SALEPRICE, 5)
 
-
 # Median Neighborhood Price
 resdata$MedSalesDecile <- ntile(resdata$MedianTractSalesPrice,10)
+
+# Percent Black Quartiles
+resdata$blackquintile <- ntile(resdata$Percent_Black,5)
+resdata$blackdecile <- ntile(resdata$Percent_Black,10)
+
+# Percent White Quartiles
+resdata$whitequintile <- ntile(resdata$Percent_White,5)
+resdata$whitedecile <- ntile(resdata$Percent_White,10)
+
+# Percent Renter Quartiles
+resdata$renterquintile <- ntile(resdata$Percent_Renter,5)
+resdata$renterdecile <- ntile(resdata$Percent_Renter,10)
+
+# Income Deciles
+resdata$IncomeDecile <- ntile(resdata$MEDIAN.INCOME,10)
+
+# Black Income Poverty Rate
+resdata$BlackIncome_PovertyRateDecile <- ntile(resdata$Percent_BlackIncomeBelowPovRate,10)
+
+# White Income Poverty Rate
+resdata$WhiteIncome_PovertyRateDecile <- ntile(resdata$Percent_WhiteIncomeBelowPovRate,10)
+
+
+# Total Population Income Below Poverty Rate
+resdata$TotalPOPIncome_PovertyRateDecile <- ntile(resdata$Percent_TotalPOPIncomeBelowPovRate,10)
+
+# Total Population Below Poverty Income Ratio
+resdata$POPIncome_PovertyRatioDecile <- ntile(resdata$POPBelowPovIncomeRatio,10)
+
+
+```
+
+## Tables
+```{r}
+
+
+# Median Neighborhood Price
 tapply(resdata$atsratio, resdata$MedSalesDecile, summary)
 
 
@@ -164,51 +215,32 @@ tapply(resdata$atsratio, resdata$salesquintile, summary)
 tapply(resdata$SALEPRICE, resdata$salesdecile, summary)
 
 
-
-# Percent Black Quartiles
-resdata$blackquintile <- ntile(resdata$Percent_Black,5)
-resdata$blackdecile <- ntile(resdata$Percent_Black,10)
-
 # Assess Ratio by Percent Black Quintile
 tapply(resdata$atsratio,resdata$blackquintile, summary)
 tapply(resdata$atsratio,resdata$blackdecile, summary)
-
-# Percent White Quartiles
-resdata$whitequintile <- ntile(resdata$Percent_White,5)
-resdata$whitedecile <- ntile(resdata$Percent_White,10)
 
 # Assess Ratio by Percent White Quintile
 tapply(resdata$atsratio,resdata$whitequintile, summary)
 tapply(resdata$atsratio,resdata$whitedecile, summary)
 
-# Percent Renter Quartiles
-resdata$renterquintile <- ntile(resdata$Percent_Renter,5)
-resdata$renterdecile <- ntile(resdata$Percent_Renter,10)
 # Assess Ratio by Percent Renter Quintile
 tapply(resdata$atsratio,resdata$renterquintile, summary)
 tapply(resdata$atsratio,resdata$renterdecile, summary)
 
-
-
 # Income Deciles
-resdata$IncomeDecile <- ntile(resdata$MEDIAN.INCOME,10)
 tapply(resdata$atsratio,resdata$IncomeDecile, summary)
 
 # Black Income Poverty Rate
-resdata$BlackIncome_PovertyRateDecile <- ntile(resdata$Percent_BlackIncomeBelowPovRate,10)
 tapply(resdata$atsratio,resdata$BlackIncome_PovertyRateDecile, summary)
 
 # White Income Poverty Rate
-resdata$WhiteIncome_PovertyRateDecile <- ntile(resdata$Percent_WhiteIncomeBelowPovRate,10)
 tapply(resdata$atsratio,resdata$WhiteIncome_PovertyRateDecile, summary)
 
 # Total Population Income Below Poverty Rate
-resdata$TotalPOPIncome_PovertyRateDecile <- ntile(resdata$Percent_TotalPOPIncomeBelowPovRate,10)
 tapply(resdata$atsratio,resdata$TotalPOPIncome_PovertyRateDecile, summary)
 
 
 # Total Population Below Poverty Income Ratio
-resdata$POPIncome_PovertyRatioDecile <- ntile(resdata$POPBelowPovIncomeRatio,10)
 tapply(resdata$atsratio,resdata$POPIncome_PovertyRatioDecile, summary)
 
 
@@ -233,25 +265,35 @@ tapply(resdata$atsratio, resdata$GEO_TRACT, mean)
 
 #resdata %>% filter(IncomeDecile == 10 & salesdecile == 10) %>% select(SALEPRICE,ASSESSEDVAL)
 
+
 ```
 
 Fits Following Paper
 ```{r}
 fitdata <- resdata %>% 
-  select(atsratio,Percent_Black,Percent_Renter,Percent_POPBelowPovIncomeRatio,LogSalesPrice,SALEPRICE,LogMedianIncome,LogMedianTractSalesPrice,PriceDeviation,BLDTYPE,GEO_TRACT)
+  select(atsratio,Percent_Black,Percent_Renter,Percent_POPBelowPovIncomeRatio,PctSalePriceDiff_Above,PctSalePriceDiff_Below,LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
 
 scaled.dat <- fitdata %>% 
-  select(-c("BLDTYPE","GEO_TRACT")) %>%scale(center = T,scale=T)
+  select(-c("GEO_TRACT")) %>%scale(center = T,scale=T)
 
 fitdata <- as.data.frame(scaled.dat) %>% 
-  mutate(GEO_TRACT = fitdata$GEO_TRACT,
-         BLDTYPE = fitdata$BLDTYPE)
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
 
 # for some reason Price Deviation blows up the model
-mod1 <- lmer(atsratio ~ LogMedianIncome + Percent_Black + Percent_Renter + Percent_POPBelowPovIncomeRatio + LogMedianTractSalesPrice  + (1|GEO_TRACT), data = fitdata)
+mod1 <- lmer(atsratio ~ LogMedianIncome + Percent_Black + Percent_Renter + Percent_POPBelowPovIncomeRatio + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT), data = fitdata)
 
 summary(mod1)
 anova(mod1)
+
+ICC = (0.07752)/(0.75515+0.07752)
+ICC
+
+# Of the variance of an observation, 9.3% of this variation is the result of differences 
+# between Census Tracts. 
+
+# 90.7% of this variation is the result of differences within Census Tracts
+
+
 
 ```
 
