@@ -157,6 +157,9 @@ For Model 1
          
       - Residents of higher-income neighborhoods are taxed at higher effective rates
          
+      Interpretation: Difference between an annual property tax bill of $1000 & 
+      
+      1000 + (1000*sqrt(var(resdata$atsratio)) * 0.12)
   
 
   
