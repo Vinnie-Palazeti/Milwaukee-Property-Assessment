@@ -113,6 +113,13 @@ us determine whether property taxes are progressive or regressive with respect t
   
   
   
+  ***
+  Thus, a one standard deviation change in the independent
+variable is associated with a beta standard deviation change in the dependent variable. To estimate whether property
+taxation is progressive or regressive with respect to sale price, we look to the coefficients on neighborhood median sale
+price, an individual home’s percent deviation above, and percent deviation below
+  
+  
   
 ####################### FINDINGS FOR COLLIN #####################  
   
@@ -126,13 +133,32 @@ The effect of median neighborhood price is the opposite of individual home sale 
     - a high sale price is associated is assocaited with a lower assessment
   
   
-    Thus, we will controll for average sale price of each tract
+    Thus, we will control for average sale price of each tract
       & the individual deviations from the average
       
     Hopefully this will allow us to determine whether property taxes are
     progressive or regressive with respect to sale price
+    
+      - Look to beta coefficients on the neighborhood median sale price, the individual home's percent
+        deviation below & above
 
+
+Interpretations of Coefficients
+
+    A one standard deviation change in the independent variable is associated with a beta
+    standard deviation change in the dependent variable
+    
+    
+For Model 1
+
+    Log Median Income is significant
+       - A one standard deviation increase in LogMedianIncome is associated with a 0.12481 
+         standard deviation increase in the assessment ratio
+         
+      - Residents of higher-income neighborhoods are taxed at higher effective rates
+         
   
+
   
   
 
