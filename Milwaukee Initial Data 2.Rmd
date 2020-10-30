@@ -153,8 +153,6 @@ resdata <- resdata %>%
         
         )
 
-
-
 ```
 
 ```{r}
@@ -208,8 +206,6 @@ resdata$POPIncome_PovertyRatioDecile <- ntile(resdata$POPBelowPovIncomeRatio,10)
 
 ## Tables
 ```{r}
-
-
 # Median Neighborhood Price
 tapply(resdata$atsratio, resdata$MedSalesDecile, summary)
 
@@ -306,24 +302,6 @@ r.squaredGLMM(mod1)
 
 # 90.7% of this variation is the result of differences within Census Tracts
 
-fitdata1.5 <- resdata %>% 
-  select(atsratio,Percent_White,Percent_Renter,Percent_POPBelowPovIncomeRatio,PctSalePriceDiff_Above,PctSalePriceDiff_Below,LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
-
-scaled.dat <- fitdata1.5 %>% 
-  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
-
-fitdata1.5 <- as.data.frame(scaled.dat) %>% 
-  mutate(GEO_TRACT = fitdata1.5$GEO_TRACT)
-
-mod1.5 <- lmer(atsratio ~ LogMedianIncome + Percent_White + Percent_Renter + Percent_POPBelowPovIncomeRatio + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT), data = fitdata1.5)
-
-summary(mod1.5)
-anova(mod1.5)
-
-r.squaredGLMM(mod1.5)
-
-#######################
-
 
 fitdata1.5 <- resdata %>% 
   select(atsratio,Percent_White,Percent_Renter,Percent_POPBelowPovIncomeRatio,PctSalePriceDiff_Above,PctSalePriceDiff_Below,LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
@@ -344,7 +322,25 @@ r.squaredGLMM(mod1.5)
 #######################
 
 
-fitdata2 <- resdata %>% 
+fitdata1.5 <- resdata %>% 
+  select(atsratio,Percent_White,Percent_Renter,Percent_POPBelowPovIncomeRatio,PctSalePriceDiff_Above,PctSalePriceDiff_Below,LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
+
+scaled.dat <- fitdata1.5 %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata1.5 <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata1.5$GEO_TRACT)
+
+mod1.5 <- lmer(atsratio ~ LogMedianIncome + Percent_White + Percent_Renter + Percent_POPBelowPovIncomeRatio + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT), data = fitdata1.5)
+
+summary(mod1.5)
+anova(mod1.5)
+
+r.squaredGLMM(mod1.5)
+
+#######################
+
+r.squaredGLMM(mod2)fitdata2 <- resdata %>% 
   select(atsratio,Percent_Black,Percent_White,whitedecile,blackdecile,LogMedianIncome,PctSalePriceDiff_Above,PctSalePriceDiff_Below,GEO_TRACT)
 
 
@@ -353,7 +349,6 @@ mod2 <- lmer(atsratio ~ blackdecile + (1|GEO_TRACT), data = fitdata2)
 summary(mod2)
 anova(mod2)
 
-r.squaredGLMM(mod2)
 
 #######################
 

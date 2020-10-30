@@ -168,11 +168,7 @@ For Model 1
   
 ################# QUESTIONS FOR COLLIN ##########################
 
-In fact, I find that homes in black neighborhoods of Fulton County are consistently under-assessed. This may merely
-indicate lack of discrimination. On the other hand, this could be evidence of a different problem. Banks often rely on
-county assessments when evaluating mortgage applications. If homes in black neighborhoods are under-assessed,
-applicants may face difficulty accessing credit.
+************** 
+data on county assessments with data on private assessments and loans to determine whether county under-assessment impedes access to credit, controlling for sale price.
 
-************** Future studies should combine data on county assessments with data on
-    private assessments and loans to determine whether county under-assessment impedes access to credit, controlling for sale
-    price.
+
