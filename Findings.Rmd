@@ -94,3 +94,10 @@ lm(Medians ~ Deciles,data=HispATS);anova(lm(Medians ~ Deciles,data=HispATS))
 
 
     - See less of a trend here
+    
+
+
+
+    
+    
+    

@@ -20,6 +20,7 @@ library(sf)
 library(lme4)
 library(lmerTest)
 library(MuMIn)
+library(corrplot)
 ```
 
 Assignment Configuration
@@ -115,6 +116,12 @@ info <- resdata %>%
 resdata <- resdata %>% left_join(info, by="GEO_TRACT") %>%
   mutate(PriceDeviation = (SALEPRICE - MedianTractSalesPrice))
 
+
+info <- resdata %>%
+  group_by(GEO_TRACT) %>%
+  summarize(MedianATSRatio = median(atsratio))
+
+resdata <- resdata %>% left_join(info, by="GEO_TRACT") 
 
 resdata <- resdata %>% 
   mutate(
@@ -282,6 +289,46 @@ summary(resdata$PctSalePriceDiff)
 #resdata %>% filter(IncomeDecile == 10 & salesdecile == 10) %>% select(SALEPRICE,ASSESSEDVAL)
 ```
 
+Correlations
+```{r}
+cors <- resdata %>% select(MedianATSRatio,Percent_Black,Percent_White,Percent_Hispanic, Percent_POPBelowPovIncomeRatio, Percent_TotalPOPIncomeBelowPovRate, MEDIAN.INCOME, SALEPRICE, GEO_TRACT)
+
+cors <- cors %>% distinct(GEO_TRACT, .keep_all = TRUE) %>% select(-c(GEO_TRACT))
+
+cors <- cor(cors)
+
+corrplot(cors,method='square', type = 'lower'); cors
+
+
+```
+
+
+EDA Trends
+
+```{r}
+
+anova(lm(MedianATSRatio ~ GEO_TRACT,data=resdata)) ; lm(MedianATSRatio ~ GEO_TRACT,data=resdata) 
+
+anova(lm(atsratio ~ GEO_TRACT,data=resdata)) ; lm(atsratio ~ GEO_TRACT,data=resdata) 
+
+```
+
+# Question for matthews
+
+# we are model building & concerned about multicolinarity
+# in inferential statistics, how big of an issue is this?
+# does not interpreting the correlated variables change anything?
+# 
+
+# we see that, say Median income & percent black population are highly correlated
+# but also, both of these variables are of peak interest
+# how do we go about including them in the model for inferential purposes? or what 
+# is generally the best practice?
+
+
+
+
+
 Fits
 ```{r}
 fitdata <- resdata %>% 
@@ -447,7 +494,7 @@ p6 +geom_vline(aes(xintercept=mean(Percent_White)),
 
 Shapefile
 ```{r}
-Mil_County<-st_read("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census_Tracts.shp")
+Mil_County<-st_read("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Shapefiles/Census_Tracts.shp")
 #Makeup
 st_geometry_type(Mil_County)
 #Coordinate Reference System
@@ -499,7 +546,7 @@ ggplot() +
         rect = element_blank())+
   coord_sf()
 
-ggsave("Sales Decile.png", width = 5.5, height = 7)
+#ggsave("Sales Decile.png", width = 5.5, height = 7)
 
 ```
 
@@ -519,7 +566,7 @@ ggplot() +
         rect = element_blank())+
   coord_sf()
 
-ggsave("Percent Black Population.png", width = 5.5, height = 7)
+#ggsave("Percent Black Population.png", width = 5.5, height = 7)
 ```
 
 ```{r}
@@ -535,7 +582,7 @@ ggplot() +
         rect = element_blank())+
   coord_sf()
 
-ggsave("Percent White Population.png", width = 5.5, height = 7)
+#ggsave("Percent White Population.png", width = 5.5, height = 7)
 ```
 
 
@@ -555,11 +602,28 @@ ggplot() +
         rect = element_blank())+
   coord_sf()
 
-ggsave("Income Deciles.png", width = 5.5, height = 7)
+#ggsave("Income Deciles.png", width = 5.5, height = 7)
 
 ```
 
 
+
+```{r}
+ggplot() + 
+  geom_sf(aes(fill=MedianATSRatio), color='transparent', data = temp) +
+  geom_sf(fill = 'transparent', color='white', data = temp) + 
+  geom_sf(fill='grey90', color = 'white',data = temp2)+
+  scale_fill_viridis_c(name ='Sale Decile')+
+  ggtitle("Milwaukee Sale Price Deciles") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
+
+#ggsave("Sales Decile.png", width = 5.5, height = 7)
+
+```
 
 
 ###
