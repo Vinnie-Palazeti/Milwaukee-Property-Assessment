@@ -5,8 +5,92 @@ output: html_document
 
 Findings
 
-
+Median ATS Ratio by Income Decile
 ```{r}
-
+tapply(resdata$atsratio,resdata$IncomeDecile, summary)
 ```
 
+    - The Median Assessment to Sale ratio increases as the Median Income of the tract Increase
+    
+    - As the income increases, the assessment approaches the sale value of the house
+    
+    - 
+
+
+Median ATS Ratio by Sales Decile
+```{r}
+tapply(resdata$atsratio, resdata$salesdecile, summary)
+```
+
+    - The Median Assessment to Sale ratio decreases as the sale price increases
+    
+    - As the sale price of a house increases, the assessment diverges from the sale value of the house
+    
+    - Higher prices homes are under assessed  
+    
+    
+Median ATS Ratio by Percent Black Population Decile
+```{r}
+blackpop <- tapply(resdata$atsratio,resdata$blackdecile, summary)
+
+medians <- c()
+deciles <- 1:10
+for (i in 1:10){
+  medians[i] <- as.numeric(blackpop[[i]]['Median']) }
+
+BlackATS <- data.frame("Medians" = medians,
+                       "Deciles" = deciles)
+
+lm(Medians ~ Deciles,data=BlackATS);anova(lm(Medians ~ Deciles,data=BlackATS))
+```
+
+    - The Median Assessment to Sale ratio decreases as the percent black population increases
+    
+    - As the percent of the black population increases in a tract, the assessment diverges from the sale value of the house
+    
+    - Homes in black neighborhoods are under assessed 
+    
+    
+Median ATS Ratio by Percent White Population Decile
+```{r}
+tapply(resdata$atsratio,resdata$whitedecile, summary)
+whitepop <- tapply(resdata$atsratio,resdata$whitedecile, summary)
+
+medians <- c()
+deciles <- 1:10
+for (i in 1:10){
+  medians[i] <- as.numeric(whitepop[[i]]['Median']) }
+
+WhiteATS <- data.frame("Medians" = medians,
+                       "Deciles" = deciles)
+
+lm(Medians ~ Deciles,data=WhiteATS);anova(lm(Medians ~ Deciles,data=WhiteATS))
+```
+
+    - The Median Assessment to Sale ratio increases as the percent white population increases
+    
+    - As the percent of the white population increases in a tract, the assessment approaches the sale value of the house
+    
+    - Homes in white neighborhoods are over assessed (relative to black neighborhoods), homes are assessed closer to their true sale value
+    
+    - Homes in white neighborhoods show the opposite trend to black neighborhoods
+    
+    
+Median ATS Ratio by Percent Hispanic Population Decile
+```{r}
+tapply(resdata$atsratio, resdata$hispaniddecile, summary)
+hispanicpop <- tapply(resdata$atsratio, resdata$hispaniddecile, summary)
+
+medians <- c()
+deciles <- 1:10
+for (i in 1:10){
+  medians[i] <- as.numeric(hispanicpop[[i]]['Median']) }
+
+HispATS <- data.frame("Medians" = medians,
+                       "Deciles" = deciles)
+
+lm(Medians ~ Deciles,data=HispATS);anova(lm(Medians ~ Deciles,data=HispATS))
+```
+
+
+    - See less of a trend here

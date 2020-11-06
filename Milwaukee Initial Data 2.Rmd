@@ -181,6 +181,10 @@ resdata$blackdecile <- ntile(resdata$Percent_Black,10)
 resdata$whitequintile <- ntile(resdata$Percent_White,5)
 resdata$whitedecile <- ntile(resdata$Percent_White,10)
 
+# Percent Hispanic
+resdata$hispaniddecile <- ntile(resdata$Percent_Hispanic,10)
+
+
 # Percent Renter Quartiles
 resdata$renterquintile <- ntile(resdata$Percent_Renter,5)
 resdata$renterdecile <- ntile(resdata$Percent_Renter,10)
@@ -225,6 +229,9 @@ tapply(resdata$atsratio,resdata$blackdecile, summary)
 # Assess Ratio by Percent White Quintile
 tapply(resdata$atsratio,resdata$whitequintile, summary)
 tapply(resdata$atsratio,resdata$whitedecile, summary)
+
+# Assess Ratio by Percent Hispanic Decile
+tapply(resdata$atsratio, resdata$hispaniddecile,summary)
 
 # Assess Ratio by Percent Renter Quintile
 tapply(resdata$atsratio,resdata$renterquintile, summary)
