@@ -65,6 +65,16 @@ WhiteATS <- data.frame("Medians" = medians,
                        "Deciles" = deciles)
 
 lm(Medians ~ Deciles,data=WhiteATS);anova(lm(Medians ~ Deciles,data=WhiteATS))
+
+plot(lm(atsratio ~ Percent_White, data=resdata))
+
+
+plot(lm(atsratio ~ Percent_Black, data=resdata)) # higher ats ratios the variance is going down
+# less variability around large ats ratios
+
+
+
+anova(lm(atsratio ~ whitedecile, data=resdata))
 ```
 
     - The Median Assessment to Sale ratio increases as the percent white population increases

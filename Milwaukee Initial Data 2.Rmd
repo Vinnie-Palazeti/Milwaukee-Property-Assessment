@@ -326,7 +326,9 @@ anova(lm(atsratio ~ GEO_TRACT,data=resdata)) ; lm(atsratio ~ GEO_TRACT,data=resd
 # is generally the best practice?
 
 
-
+# Not only is corr a problem, but VIF is an issue
+# Check VIF, see if it is huge
+# VIF from lm, function called VIF
 
 
 Fits
@@ -342,6 +344,10 @@ fitdata <- as.data.frame(scaled.dat) %>%
 
 # for some reason Price Deviation blows up the model
 mod1 <- lmer(atsratio ~ LogMedianIncome + Percent_Black + Percent_Renter + Percent_POPBelowPovIncomeRatio + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT), data = fitdata)
+
+# RF source of variability
+# if GEOtract as fixed effect, losing df
+# only loosing 1 df with RF, 
 
 summary(mod1)
 anova(mod1)
@@ -432,8 +438,6 @@ summary(mod5)
 anova(mod5)
 
 r.squaredGLMM(mod5)
-
-
 ```
 
 #blquant=cut(resdata$Percent_Black, breaks = quantile(resdata$Percent_Black, p=seq(0,1,length.out = 8)), include.lowest = T)
