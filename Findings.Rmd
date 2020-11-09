@@ -5,6 +5,8 @@ output: html_document
 
 Findings
 
+
+
 Median ATS Ratio by Income Decile
 ```{r}
 tapply(resdata$atsratio,resdata$IncomeDecile, summary)
@@ -14,7 +16,6 @@ tapply(resdata$atsratio,resdata$IncomeDecile, summary)
     
     - As the income increases, the assessment approaches the sale value of the house
     
-    - 
 
 
 Median ATS Ratio by Sales Decile
@@ -72,9 +73,6 @@ plot(lm(atsratio ~ Percent_White, data=resdata))
 plot(lm(atsratio ~ Percent_Black, data=resdata)) # higher ats ratios the variance is going down
 # less variability around large ats ratios
 
-
-
-anova(lm(atsratio ~ whitedecile, data=resdata))
 ```
 
     - The Median Assessment to Sale ratio increases as the percent white population increases

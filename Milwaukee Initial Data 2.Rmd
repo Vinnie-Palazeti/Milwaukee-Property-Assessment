@@ -27,13 +27,14 @@ Assignment Configuration
 ```{r}
 #setwd("C:/Users/bcris/OneDrive/Desktop")
 setwd("C:/Users/Vinnie/Documents")
-
 #setwd("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment")
+
 
 # Assign Census Data
 popdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Data.csv") %>% select(-c("X"))
 povdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
 
+# MAC
 #popdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Data.csv")
 
 # Assign Assessment Data
@@ -65,7 +66,10 @@ resdata <- filter(resdata, NUM_BLDS == 1) #Check on this
 resdata <- filter(resdata, grepl('R', ZONING))
 
 # Colin recommended removing Type 11,13,14, & 22
-resdata <- filter(resdata, BLDTYPE != "11 - Duplex O/S" & BLDTYPE != "13 - Duplex-Cottage" & BLDTYPE != "14 - Multiple Residential Bldgs" & BLDTYPE != "22 - Dplx Bungalow")
+resdata <- filter(resdata, BLDTYPE != "11 - Duplex O/S" & 
+                    BLDTYPE != "13 - Duplex-Cottage" & 
+                    BLDTYPE != "14 - Multiple Residential Bldgs" & 
+                    BLDTYPE != "22 - Dplx Bungalow")
 
 # Values not present in data
 unique(resdata$TYPE)
@@ -100,7 +104,11 @@ summary(resdata$atsratio)
 # Don't Need To
 
 unique(resdata$BLDTYPE)
-resdata <- resdata %>% mutate(BLDTYPE = ifelse(BLDTYPE == "C018 - Milwaukee Bungalow","18 - Milwaukee Bungalow",BLDTYPE))
+
+resdata <- resdata %>% 
+  mutate(BLDTYPE = ifelse(BLDTYPE == "C018 - Milwaukee Bungalow",
+                          "18 - Milwaukee Bungalow",
+                          BLDTYPE))
 
 ```
 
@@ -282,8 +290,6 @@ tapply(resdata$atsratio, resdata$GEO_TRACT, mean)
 summary(resdata$MedianTractSalesPrice)
 summary(resdata$PctSalePriceDiff)
 
-
-
 1000 + (1000*sqrt(var(resdata$atsratio)) * 0.12)
 
 #resdata %>% filter(IncomeDecile == 10 & salesdecile == 10) %>% select(SALEPRICE,ASSESSEDVAL)
@@ -291,9 +297,12 @@ summary(resdata$PctSalePriceDiff)
 
 Correlations
 ```{r}
-cors <- resdata %>% select(MedianATSRatio,Percent_Black,Percent_White,Percent_Hispanic, Percent_POPBelowPovIncomeRatio, Percent_TotalPOPIncomeBelowPovRate, MEDIAN.INCOME, SALEPRICE, GEO_TRACT)
+cors <- resdata %>% 
+  select(MedianATSRatio, Percent_Black, Percent_White, Percent_Hispanic, Percent_POPBelowPovIncomeRatio, Percent_TotalPOPIncomeBelowPovRate, MEDIAN.INCOME, SALEPRICE, GEO_TRACT)
 
-cors <- cors %>% distinct(GEO_TRACT, .keep_all = TRUE) %>% select(-c(GEO_TRACT))
+cors <- cors %>% 
+  distinct(GEO_TRACT, .keep_all = TRUE) %>% 
+  select(-c(GEO_TRACT))
 
 cors <- cor(cors)
 

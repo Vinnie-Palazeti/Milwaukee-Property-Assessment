@@ -17,12 +17,23 @@ Office.
 
 
 Goals: The goals of this project include:
+
+
     1. Identifying how market trends differentially impact communities of color and varying
-       socioeconomic status; and
+       socioeconomic status;
+       
+       - Sub population analysis
+        - Break down & run models specifically on subcommunities
+
       
     2. Determining whether Milwaukee property assessments change disproportionately
        according to demographic factors.
-       
+
+
+
+
+
+
        
 Do we have adequate demograpgic information for milwaukee?
 
