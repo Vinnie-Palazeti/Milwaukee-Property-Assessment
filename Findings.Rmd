@@ -3,7 +3,136 @@ title: "Findings"
 output: html_document
 ---
 
-Findings
+Final
+
+Research Question
+
+Background on Dependent variable - Assessment Ratio
+
+
+Data Provided
+```{r}
+setwd("C:/Users/Vinnie/Documents")
+load("res_data_w_geo.dta")
+Initial <-data.frame(res_data_w_geo)
+print(Initial)
+```
+All variables
+```{r}
+names(Initial)
+```
+
+Continuous Variables of Interest
+
+Sale Price, Land Size, Land Value, Improvement Value, Assessment Value
+```{r}
+ggplot(Initial, aes(SALEPRICE)) +
+  geom_histogram(bins = 200)
+
+ggplot(Initial, aes(ASSESSEDVAL)) +
+  geom_histogram(bins = 200)
+
+ggplot(Initial, aes(LANDSIZE)) +
+  geom_histogram(bins = 200)
+
+ggplot(Initial, aes(LANDVAL)) +
+  geom_histogram(bins = 200)
+
+Initial$atsratio <- Initial$ASSESSEDVAL / Initial$SALEPRICE
+
+ggplot(Initial, aes(atsratio)) +
+  geom_histogram(bins = 200)
+
+```
+
+
+We first look at the main variables of interest & discover that they are all extremely right tailed.
+
+We know from prior knowledge that this would be the case. Many weird sales/properties exist, e.g. donations, auctions, foreclosures, condemtions. 
+
+In an attempt to remedy this we remove the observations outside the interquartile range
+
+
+Look at effect of this change on distribution of ats ratio
+
+```{r}
+ggplot(resdata, aes(atsratio)) +
+  geom_histogram(bins = 200)
+
+
+ggplot(resdata, aes(log(SALEPRICE))) +
+  geom_histogram(bins = 200)
+
+ggplot(resdata, aes(log(ASSESSEDVAL))) +
+  geom_histogram(bins = 200)
+```
+
+
+
+Categorical Variables
+
+Building Type, Building Quality, Number of Buildings, Building Condition, Bedrooms, Kitchens, Baths, Half-Baths, Garages
+```{r}
+BLDFreqs <- resdata %>% group_by(BLDTYPE) %>% summarize(n = n())
+plotgroup <- resdata %>% left_join(BLDFreqs, by = c("BLDTYPE"))
+
+ggplot(filter(plotgroup, n > 400), aes(BLDTYPE)) +
+  geom_bar() #+ theme(axis.text.x = element_blank())
+
+level_order_qual <- c("A","B","C","D","E","NA")
+
+ggplot(resdata, aes(x = factor(QUAL, level = level_order_qual))) +
+  geom_bar()# + theme(axis.text.x = element_blank())
+
+level_order_cond <- c("EX - Excellent","VG - Very Good","GD - Good","AV - Average","FR - Fair","PR - Poor","VP - Very Poor","UN - Unsound")
+
+ggplot(resdata, aes(x = factor(COND, level = level_order_cond))) +
+  geom_bar()# + theme(axis.text.x = element_blank())
+
+ggplot(resdata, aes(NUM_BLDS)) +
+  geom_bar()
+
+ggplot(resdata, aes(KITCHENS)) +
+  geom_bar()
+
+ggplot(resdata, aes(BEDROOMS)) + 
+  geom_bar()
+```
+
+
+Temporal Variables
+
+Date sold, Year Built
+```{r}
+ggplot(resdata, aes(SALEDATE,fill = factor(QUAL_recode, level = level_order_qual))) +
+  geom_histogram(bins=100) +
+  theme(legend.title=element_blank())
+
+ggplot(resdata, aes(YEARBLT, fill = factor(QUAL_recode, level = level_order_qual))) +
+  geom_histogram(bins=100) +
+  theme(legend.title=element_blank())
+
+ggplot(resdata, aes(YEARBLT, fill = factor(COND, level = level_order_cond))) +
+  geom_histogram(bins=100)
+
+```
+
+
+Visualizations of variables with ats ratio
+
+```{r}
+ggplot(resdata, aes(atsratio, fill = factor(QUAL_recode, level = level_order_qual))) +
+  geom_histogram(bins=100) +
+  theme(legend.title=element_blank())
+
+
+ggplot(resdata, aes(atsratio, fill = factor(COND, level = level_order_cond))) +
+  geom_histogram(bins=100)+
+  theme(legend.title=element_blank())
+```
+
+
+
 
 
 

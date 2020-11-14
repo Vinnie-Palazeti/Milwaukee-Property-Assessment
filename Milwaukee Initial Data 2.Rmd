@@ -110,7 +110,28 @@ resdata <- resdata %>%
                           "18 - Milwaukee Bungalow",
                           BLDTYPE))
 
+resdata <- resdata %>% mutate(QUAL = ifelse(QUAL == "AA- - AA-","A- - A-", QUAL))
+
+resdata <- resdata %>%
+  mutate(QUAL_recode = case_when(
+    QUAL %in% c("A+ - A+","A - A","A- - A-") ~ "A",
+    QUAL %in% c("B+ - B+","B - B","B- - B-") ~ "B",
+    QUAL %in% c("C+ - C+","C - C","C- - C-") ~ "C",
+    QUAL %in% c("D+ - D+","D - D","D- - D-") ~ "D",
+    QUAL %in% c("E+ - E+") ~ "E",
+    QUAL == "M&S 2 - Average" ~ "NA",
+    TRUE ~ as.character(QUAL)
+    
+  ))
+
+
 ```
+
+```{r}
+
+```
+
+
 
 ## Census Demographics
 ```{r}
