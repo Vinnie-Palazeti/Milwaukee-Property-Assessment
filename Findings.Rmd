@@ -73,7 +73,7 @@ Categorical Variables
 
 Building Type, Building Quality, Number of Buildings, Building Condition, Bedrooms, Kitchens, Baths, Half-Baths, Garages
 ```{r}
-BLDFreqs <- resdata %>% group_by(BLDTYPE) %>% summarize(n = n())
+BLDFreqs <- resdata %>% group_by(BLDTYPE) %>% summarise(n = n())
 plotgroup <- resdata %>% left_join(BLDFreqs, by = c("BLDTYPE"))
 
 ggplot(filter(plotgroup, n > 400), aes(BLDTYPE)) +
@@ -113,7 +113,8 @@ ggplot(resdata, aes(YEARBLT, fill = factor(QUAL_recode, level = level_order_qual
   theme(legend.title=element_blank())
 
 ggplot(resdata, aes(YEARBLT, fill = factor(COND, level = level_order_cond))) +
-  geom_histogram(bins=100)
+  geom_histogram(bins=100)+
+  theme(legend.title=element_blank())
 
 ```
 
@@ -534,8 +535,6 @@ In a crude way we can check the relationship between correlated variables via R^
 summary(lm(MEDIAN.INCOME ~ Percent_Black, data = resdata))
 plot(lm(MEDIAN.INCOME ~ Percent_Black, data = resdata))
 
-ggplot(resdata, aes(x = Percent_Black, y = MEDIAN.INCOME)) +
-  geom_point()
 
 ggplot(resdata, aes(x = Percent_Black, y = MEDIAN.INCOME)) +
   geom_point() +
@@ -546,20 +545,14 @@ ggplot(resdata, aes(x = Percent_Black, y = MEDIAN.INCOME)) +
 summary(lm(MEDIAN.INCOME ~ Percent_NotHispanic_White, data = resdata))
 plot(lm(MEDIAN.INCOME ~ Percent_NotHispanic_White, data = resdata))
 
-ggplot(resdata, aes(x = Percent_NotHispanic_White, y = MEDIAN.INCOME)) +
-  geom_point()
 
 ggplot(resdata, aes(x = Percent_NotHispanic_White, y = MEDIAN.INCOME)) +
   geom_point() +
   geom_smooth(method = lm)
 
 
-
 summary(lm(MEDIAN.INCOME ~ Percent_Hispanic, data = resdata))
 plot(lm(MEDIAN.INCOME ~ Percent_NotHispanic_White, data = resdata))
-
-ggplot(resdata, aes(x = Percent_Hispanic, y = MEDIAN.INCOME)) +
-  geom_point()
 
 ggplot(resdata, aes(x = Percent_Hispanic, y = MEDIAN.INCOME)) +
   geom_point() +
@@ -568,16 +561,7 @@ ggplot(resdata, aes(x = Percent_Hispanic, y = MEDIAN.INCOME)) +
 ```
 
 
-PARTIAL CORRELATION
- 
-LASSO
-
-BEST SUBSET
-
-
- 
-Regression Analysis
-
+We were curious to see if the LASSO procedure would shrink any coefficients to zero
 ```{r}
 
 fitdata <- resdata %>% 
@@ -597,7 +581,100 @@ covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, 
 
 fitdata <- cbind(fitdata,covariates)
 
+lasso_data <- fitdata %>% select(-c("GEO_TRACT", "Percent_Renter"))
 
+x_vars <- model.matrix(atsratio ~.,lasso_data)[,-1]
+y_var <- lasso_data$atsratio
+grid = 10^seq(10, -2, length = 100)
+
+lasso <- glmnet(x_vars, y_var, alpha = 1, lambda = grid)
+plot(lasso)
+
+cv.out = cv.glmnet(x_vars,y_var, alpha = 1)
+plot(cv.out)
+
+bestlam <- cv.out$lambda.min
+out <- glmnet(x_vars,y_var, alpha = 1, lambda=grid)
+lasso_coef = predict(out,type='coefficients',s=bestlam)
+lasso_coef
+
+```
+
+
+GOODNESS OF FIT
+
+We want to test the distribution of our Dependent variable 
+
+##### NEED HELP #####
+
+```{r}
+set.seed(10)
+hist(resdata$atsratio)
+samp <- sample(resdata$atsratio, size = 4000, replace = F)
+hist(samp)
+
+
+
+gof.norm <- gofTest(samp, distribution = "norm")
+gof.norm$p.value
+
+plot(gof.norm)
+
+gof.lognorm <- gofTest(log(samp), distribution = "norm")
+gof.lognorm$p.value
+
+plot(gof.lognorm)
+
+
+
+
+
+gof.gamma <- gofTest(samp, distribution = "gamma")
+gof.gamma$p.value
+
+plot(gof.gamma)
+
+
+gof.gammacorrectedmle <- gofTest(samp,distribution = "gamma",
+                                 est.arg.list = list(method="bcmle"))
+gof.gammacorrectedmle$p.value
+
+plot(gof.gammacorrectedmle)
+
+
+
+
+gof.gammaks <- gofTest(samp, test = 'ks',distribution = "gamma")
+gof.gammaks$p.value
+
+plot(gof.gammaks)
+
+
+gof.lnorm <- gofTest(samp, distribution = "lnorm")
+gof.lnorm$p.value
+
+plot(gof.lnorm)
+
+
+
+shapiro.test(samp)
+
+ks.test(samp,'pnorm',m=0.89,sd=0.13)
+
+ks.test(samp,'pnorm',m=0,sd=1)
+
+boxcox.list <- boxcox(samp)
+
+plot(boxcox.list)
+
+plot(boxcox.list, plot.type = "Q-Q Plots") 
+
+```
+
+ 
+Regression Analysis
+
+```{r}
 
 mod1 <- lmer(atsratio ~ LogMedianIncome + Percent_Black + Percent_Renter + Percent_TotalPOPIncomeBelowPovRate + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT), data = fitdata)
 
