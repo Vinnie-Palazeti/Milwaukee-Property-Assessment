@@ -22,6 +22,11 @@ library(lmerTest)
 library(MuMIn)
 library(corrplot)
 library(Kendall)
+library(lubridate)
+library(MASS)
+library(Hmisc)
+select <- dplyr::select
+library(car)
 ```
 
 Assignment Configuration
@@ -51,6 +56,10 @@ Cleaning
 ```{r}
 # Left Join Census Data
 resdata <- resdata %>% left_join(popdat, by = "GEO_TRACT") %>% left_join(povdat, by= "GEO_TRACT")
+resdata <- resdata %>% replace(is.na(.),0)
+
+
+`%notin%` <- Negate(`%in%`)
 
 #summary(resdata$SALEDATE) #Two Years of Data
 #summary(resdata$SALEPRICE) #Nothing Above $10M
@@ -71,6 +80,61 @@ resdata <- filter(resdata, BLDTYPE != "11 - Duplex O/S" &
                     BLDTYPE != "13 - Duplex-Cottage" & 
                     BLDTYPE != "14 - Multiple Residential Bldgs" & 
                     BLDTYPE != "22 - Dplx Bungalow")
+
+# The first seven categories comprise 93% of the observations
+resdata %>% 
+  group_by(BLDTYPE) %>% 
+  summarize(n = n()) %>%
+  arrange(desc(n)) %>%
+  slice(1:7) %>%
+  summarise(total = sum(n)/nrow(resdata))
+
+blds <- resdata %>% 
+  group_by(BLDTYPE) %>% 
+  summarize(n = n()) %>%
+  arrange(desc(n)) %>%
+  slice(1:7) %>% select(BLDTYPE)
+
+resdata <- resdata %>%
+  mutate(BLDTYPE_recode = case_when(
+    BLDTYPE %in% blds$BLDTYPE ~ BLDTYPE,
+    BLDTYPE %notin% blds$BLDTYPE ~ "Other",
+    TRUE ~ as.character(BLDTYPE)
+  ))
+
+# Dummy variables for BLDType
+resdata$Ranch <- ifelse(resdata$BLDTYPE_recode == "01 - Ranch",1,0)
+resdata$Cape_Cod <- ifelse(resdata$BLDTYPE_recode == "04 - Cape Cod",1,0)
+resdata$Milwaukee_Bungalow <- ifelse(resdata$BLDTYPE_recode == "18 - Milwaukee Bungalow",1,0)
+resdata$Res_OS_A <- ifelse(resdata$BLDTYPE_recode == "19 - Res O/S A & 1/2",1,0)
+resdata$Colonial <- ifelse(resdata$BLDTYPE_recode == "05 - Colonial",1,0)
+resdata$Duplex <- ifelse(resdata$BLDTYPE_recode == "12 - Duplex N/S",1,0)
+resdata$Res_OS_2sty <- ifelse(resdata$BLDTYPE_recode == "08 - Res O/S 2sty +",1,0)
+resdata$Other <- ifelse(resdata$BLDTYPE_recode == "Other",1,0)
+
+# Dummy variables for Kitchen Rating
+#table(resdata$KITCHEN_RTG)
+resdata$Kitchen_Average <- ifelse(resdata$KITCHEN_RTG == "AV - Average",1,0)
+resdata$Kitchen_Excellent <- ifelse(resdata$KITCHEN_RTG == "EX - Excellent",1,0)
+resdata$Kitchen_Fair <- ifelse(resdata$KITCHEN_RTG == "FR - Fair",1,0)
+resdata$Kitchen_Good <- ifelse(resdata$KITCHEN_RTG == "GD - Good",1,0)
+resdata$Kitchen_Poor <- ifelse(resdata$KITCHEN_RTG == "PR - Poor",1,0)
+resdata$Kitchen_VeryGood <- ifelse(resdata$KITCHEN_RTG == "VG - Very Good",1,0)
+resdata$Kitchen_VeryPoor <- ifelse(resdata$KITCHEN_RTG == "VP - Very Poor",1,0)
+
+# Dummy variables for Full Bath Rating
+#table(resdata$FULLBATH_RTG)
+resdata$FullBath_Average <- ifelse(resdata$FULLBATH_RTG == "AV - Average",1,0)
+resdata$FullBath_Excellent <- ifelse(resdata$FULLBATH_RTG == "EX - Excellent",1,0)
+resdata$FullBath_Fair <- ifelse(resdata$FULLBATH_RTG == "FR - Fair",1,0)
+resdata$FullBath_Good <- ifelse(resdata$FULLBATH_RTG == "GD - Good",1,0)
+resdata$FullBath_Poor <- ifelse(resdata$FULLBATH_RTG == "PR - Poor",1,0)
+resdata$FullBath_VeryGood <- ifelse(resdata$FULLBATH_RTG == "VG - Very Good",1,0)
+
+# Reformat Date
+resdata$SALEDATE <- resdata$SALEDATE %>% ymd()
+resdata$SaleYear <- year(resdata$SALEDATE)
+resdata$SaleMonth <- month(resdata$SALEDATE)
 
 # Values not present in data
 #unique(resdata$TYPE)
@@ -124,6 +188,25 @@ resdata <- resdata %>%
     TRUE ~ as.character(QUAL)
     
   ))
+
+# Quality Dummies
+#table(resdata$QUAL_recode)
+resdata$Qual_A <- ifelse(resdata$QUAL_recode == "A",1,0)
+resdata$Qual_B <- ifelse(resdata$QUAL_recode == "B",1,0)
+resdata$Qual_C <- ifelse(resdata$QUAL_recode == "C",1,0)
+resdata$Qual_D <- ifelse(resdata$QUAL_recode == "D",1,0)
+resdata$Qual_E <- ifelse(resdata$QUAL_recode == "E",1,0)
+resdata$Qual_NA <- ifelse(resdata$QUAL_recode == "NA",1,0)
+
+# Condition Dummies
+#table(resdata$COND)
+resdata$Cond_Average <- ifelse(resdata$COND == "AV - Average",1,0)
+resdata$Cond_Excellent <- ifelse(resdata$COND == "EX - Excellent",1,0)
+resdata$Cond_Fair <- ifelse(resdata$COND == "FR - Fair",1,0)
+resdata$Cond_Good <- ifelse(resdata$COND == "GD - Good",1,0)
+resdata$Cond_Poor <- ifelse(resdata$COND == "PR - Poor",1,0)
+resdata$Cond_VeryGood <- ifelse(resdata$COND == "VG - Very Good",1,0)
+resdata$Cond_VeryPoor <- ifelse(resdata$COND == "VP - Very Poor",1,0)
 
 
 TractAtsMedians <- resdata %>% group_by(GEO_TRACT) %>%
@@ -325,35 +408,99 @@ summary(resdata$PctSalePriceDiff)
 ```
 
 
+Correlations
 ```{r}
-data("PrecipGL")
-View(PrecipGL)
-?MannKendall()
 
-plot(resdata$salesdecile,resdata$atsratio)
+Observation_independents <- resdata %>% 
+  select(atsratio,SALEPRICE,YEARBLT,LANDSIZE, SaleYear,SaleMonth,ASSESSEDVAL, Kitchen_Average, Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS, FullBath_Average,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Average,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_C,Qual_C,Qual_D,Qual_E, BEDROOMS, Ranch,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
 
-str(PrecipGL)
+Obs_cors <- cor(Observation_independents)
+
+corrplot(Obs_cors,method='circle', type = 'lower', tl.col="black")
+
+
+Tract_independents <- resdata  %>% select(GEO_TRACT,MedianATSRatio,MEDIAN.INCOME,Percent_Black,Percent_NotHispanic_White,Percent_Hispanic,Percent_TotalPOPIncomeBelowPovRate)
+
+Tract_independents <- Tract_independents %>% 
+  select(-c(GEO_TRACT))
+
+Tract_cors <- cor(Tract_independents)
+
+corrplot(Tract_cors,method='circle', type = 'lower', tl.col="black")
+
 ```
 
 
-Correlations
-```{r}
-cors <- resdata %>% 
-  select(MedianATSRatio, Percent_Black, Percent_White, Percent_Hispanic, Percent_POPBelowPovIncomeRatio, Percent_TotalPOPIncomeBelowPovRate, MEDIAN.INCOME, SALEPRICE, GEO_TRACT)
 
-cors <- cors %>% 
+
+
+```{r}
+
+
+cors <- Tract_independents %>% 
   distinct(GEO_TRACT, .keep_all = TRUE) %>% 
   select(-c(GEO_TRACT))
 
-cors <- cor(cors)
 
-corrplot(cors,method='square', type = 'lower'); cors
+dist<- cor(cors)
+
+
+corrplot(dist,method='circle', type = 'lower', tl.col="black")
+
+dist;Tract_cors
+
+
+setdiff(unique(cors$MEDIAN.INCOME),unique(Tract_independents$MEDIAN.INCOME))
+
+unique(cors$MedianATSRatio)
+unique(Tract_independents$MedianATSRatio)
+
+Tract_independents ; cors
 
 
 ```
 
 
+# Tract Level
 
+MedianATSRatio
+Percent_NotHispanic_White
+Percent_Black
+Percent_Hispanic
+
+Percent_TotalPOPIncomeBelowPovRate
+MEDIAN.INCOME
+
+# Observation Level
+
+SALEPRICE
+BLDTYPE
+YEARBLT
+LANDSIZE
+LANDVAL
+IMPROVEDVAL
+ASSESSEDVAL
+SALEDATE
+NUM_BLDS
+QUAL
+COND
+BEDROOMS
+
+PRIM_WALL
+KITCHEN
+KITCHEN_RTG
+FULLBATHS
+FULLBATH_RTG
+
+
+
+```{r}
+table(resdata$KITCHEN_RTG)
+
+table(resdata$PRIM_WALL)
+
+
+```
 
 
 
@@ -396,6 +543,8 @@ scaled.dat <- fitdata %>%
 
 fitdata <- as.data.frame(scaled.dat) %>% 
   mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+
 
 # for some reason Price Deviation blows up the model
 mod1 <- lmer(atsratio ~ LogMedianIncome + Percent_Black + Percent_Renter + Percent_POPBelowPovIncomeRatio + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT), data = fitdata)

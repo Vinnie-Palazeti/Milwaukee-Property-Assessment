@@ -30,32 +30,47 @@ Goals: The goals of this project include:
        according to demographic factors.
 
 
+################################################
+############## NOTES 11/14 #####################
+################################################
+
+Which graphs for data distributions do we want
+
+Partial Correlations
+
+Observation level differences
+% difference in house aspect
+
+Do a model with factor levels instead of dummy vars to see difference
+
+Lack of fit - GAMMA, EXPONENTIAL
+
+PARTIAL CORRELATION
+ 
+LASSO
+
+BEST SUBSET
 
 
 
 
-       
-Do we have adequate demograpgic information for milwaukee?
+We saw that the effect of median neighborhood price was the opposite of individual home sale price: a
+higher median price was associated with higher assessment and taxation, while a high sale price was associated with lower
+assessment and taxation. If we control for these two variables simultaneously, the coefficients will be difficult to interpret.
 
-  - white populations
-  - black populations
-  - non white populations
-  - hispanic populations
+
+Therefore, in our regressions, we replace log sale price with the percent deviation of a house’s individual sale price from
+its neighborhood’s median sale.
+
+Thus, rather than separately controlling for individual and average sale prices, we controlfor the average sale price (of each Census block group) and the individual deviations from the average
+
+  *** We seem the same trends ## EXACT SAME
+  *** Ought to take the same percausion & use deviation from median
+  *** He controlled for average sale price of grouping & individual deviations from the average
   
-  x do not yet have other races * need to see if there is a significant portion
-  
-  
-What are other measures of socio economic status
-  - median income
-  - renter percentage / home ownership
-  
-  
-  
-  
-Notes on Ratio-Income Poverty Measure
-Ratios below 100 percent of the poverty level are below the official poverty definition. Ratios below 50 percent of the poverty level, which means that the income is less than half the poverty threshold, have been described as 'severe poverty'. While those above 100 percent the poverty level, but below 125 percent have been described as 'near poverty'. A larger percentage above the poverty level means the category contains people with higher incomes.
-  
-  
+
+
+
 
 
 ####### Notes from Main Paper
@@ -85,20 +100,7 @@ variation that Faulk and Hicks found, our ratios of 0.9362 and 0.89 for the lowe
     - Median:  .953 - .874
   
   
- we saw that the effect of median neighborhood price was the opposite of individual home sale price: a
-higher median price was associated with higher assessment and taxation, while a high sale price was associated with lower
-assessment and taxation. If we control for these two variables simultaneously, the coefficients will be difficult to interpret.
 
-
-Therefore, in our regressions, we replace log sale price with the percent deviation of a house’s individual sale price from
-its neighborhood’s median sale.
-
-Thus, rather than separately controlling for individual and average sale prices, we controlfor the average sale price (of each Census block group) and the individual deviations from the average
-
-  *** We seem the same trends ## EXACT SAME
-  *** Ought to take the same percausion & use deviation from median
-  *** He controlled for average sale price of grouping & individual deviations from the average
-  
   
   
   

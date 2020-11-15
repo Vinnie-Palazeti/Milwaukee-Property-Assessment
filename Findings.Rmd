@@ -503,10 +503,153 @@ Assessing Correlations
 
 Consider large correlation plot of all variables needed for regression
 
+Tract Level Variables & Observation Level Variables
+
+Correlations
 ```{r}
+
+Observation_independents <- resdata %>% 
+  select(atsratio,SALEPRICE,YEARBLT,LANDSIZE, SaleYear,SaleMonth,ASSESSEDVAL, Kitchen_Average, Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS, FullBath_Average,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Average,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_C,Qual_C,Qual_D,Qual_E, BEDROOMS, Ranch,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+Obs_cors <- cor(Observation_independents)
+
+corrplot(Obs_cors,method='circle', type = 'lower', tl.col="black")
+
+
+Tract_independents <- resdata  %>% select(GEO_TRACT,MedianATSRatio,MEDIAN.INCOME,Percent_Black,Percent_NotHispanic_White,Percent_Hispanic,Percent_TotalPOPIncomeBelowPovRate)
+
+Tract_independents <- Tract_independents %>% 
+  select(-c(GEO_TRACT))
+
+Tract_cors <- cor(Tract_independents)
+
+corrplot(Tract_cors,method='circle', type = 'lower', tl.col="black")
+```
+
+
+In a crude way we can check the relationship between correlated variables via R^2
+
+```{r}
+
+summary(lm(MEDIAN.INCOME ~ Percent_Black, data = resdata))
+plot(lm(MEDIAN.INCOME ~ Percent_Black, data = resdata))
+
+ggplot(resdata, aes(x = Percent_Black, y = MEDIAN.INCOME)) +
+  geom_point()
+
+ggplot(resdata, aes(x = Percent_Black, y = MEDIAN.INCOME)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+
+
+summary(lm(MEDIAN.INCOME ~ Percent_NotHispanic_White, data = resdata))
+plot(lm(MEDIAN.INCOME ~ Percent_NotHispanic_White, data = resdata))
+
+ggplot(resdata, aes(x = Percent_NotHispanic_White, y = MEDIAN.INCOME)) +
+  geom_point()
+
+ggplot(resdata, aes(x = Percent_NotHispanic_White, y = MEDIAN.INCOME)) +
+  geom_point() +
+  geom_smooth(method = lm)
+
+
+
+summary(lm(MEDIAN.INCOME ~ Percent_Hispanic, data = resdata))
+plot(lm(MEDIAN.INCOME ~ Percent_NotHispanic_White, data = resdata))
+
+ggplot(resdata, aes(x = Percent_Hispanic, y = MEDIAN.INCOME)) +
+  geom_point()
+
+ggplot(resdata, aes(x = Percent_Hispanic, y = MEDIAN.INCOME)) +
+  geom_point() +
+  geom_smooth(method = lm)
 
 ```
 
 
+PARTIAL CORRELATION
+ 
+LASSO
 
+BEST SUBSET
+
+
+ 
+Regression Analysis
+
+```{r}
+
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_Black,Percent_Renter,Percent_TotalPOPIncomeBelowPovRate,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+
+fitdata <- cbind(fitdata,covariates)
+
+
+
+mod1 <- lmer(atsratio ~ LogMedianIncome + Percent_Black + Percent_Renter + Percent_TotalPOPIncomeBelowPovRate + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT), data = fitdata)
+
+# RF source of variability
+# if GEOtract as fixed effect, losing df
+# only loosing 1 df with RF, 
+
+summary(mod1)
+anova(mod1)
+
+ICC = (0.07813)/(0.75515+0.07813)
+ICC
+
+r.squaredGLMM(mod1)
+
+# Of the variance of an observation, 9.4% of this variation is the result of differences 
+# between Census Tracts. 
+
+# 90.6% of this variation is the result of differences within Census Tracts
+
+
+
+mod2 <- lmer(atsratio ~ LogMedianIncome + Percent_Black + Percent_Renter + Percent_TotalPOPIncomeBelowPovRate + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + Kitchen_Excellent + Kitchen_Fair + Kitchen_Good +  Kitchen_Poor + Kitchen_VeryGood + Kitchen_VeryPoor + KITCHENS + FullBath_Excellent + FullBath_Fair + FullBath_Good + FullBath_Poor + FullBath_VeryGood + FULLBATHS + Cond_VeryPoor + Cond_Excellent + Cond_Fair + Cond_Good + Cond_Poor + Cond_VeryGood + Qual_A + Qual_B + Qual_D + Qual_E +  BEDROOMS + Cape_Cod + Milwaukee_Bungalow + Res_OS_A + Colonial + Duplex + Res_OS_2sty + Other, data = fitdata)
+
+
+summary(mod2)
+anova(mod2)
+
+ICC = (0.1184)/(0.6306+0.1184)
+ICC
+
+
+vif(mod2)
+plot(mod2)
+```
+ 
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
  
