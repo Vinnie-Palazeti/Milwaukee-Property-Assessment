@@ -61,10 +61,10 @@ ggplot(resdata, aes(atsratio)) +
 
 
 ggplot(resdata, aes(log(SALEPRICE))) +
-  geom_histogram(bins = 200)
+  geom_histogram(bins = 150)
 
 ggplot(resdata, aes(log(ASSESSEDVAL))) +
-  geom_histogram(bins = 200)
+  geom_histogram(bins = 150)
 ```
 
 
@@ -133,31 +133,182 @@ ggplot(resdata, aes(atsratio, fill = factor(COND, level = level_order_cond))) +
 
 
 
+Population analysis 
 
+Census Data visualizations
 
-
-Median ATS Ratio by Income Decile
+Shapefile
 ```{r}
-tapply(resdata$atsratio,resdata$IncomeDecile, summary)
+Mil_County<-st_read("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Shapefiles/Census_Tracts.shp")
+#Makeup
+st_geometry_type(Mil_County)
+#Coordinate Reference System
+st_crs(Mil_County)
+#World Geodetic System 1984
+
+`%notin%` <- Negate(`%in%`)
+
+Mil_County2 <- Mil_County %>%
+  filter(OBJECTID %notin% c(263)) %>%
+  rename(GEO_TRACT = Tract_ID_I)
+
+Mil_County3 <- st_crop(Mil_County2,xmin=-88.06995, xmax=-87.81955, ymin=42.92, ymax=43.19259)
+
+Remove <- setdiff(Mil_County2$GEO_TRACT,resdata$GEO_TRACT)
+
+Mil_County4 <- Mil_County3 %>% 
+  left_join(resdata, by = "GEO_TRACT") %>%
+  mutate(lighter = ifelse(GEO_TRACT %in% Remove, 1,0))
+
+lighter_color <- Mil_County4 %>% filter(lighter==1)
+
+ggplot() + 
+  geom_sf(data = Mil_County4, color = "black", fill = "pink") + 
+  ggtitle("Milwaukee!") + 
+  coord_sf()
+
+
 ```
 
-    - The Median Assessment to Sale ratio increases as the Median Income of the tract Increase
-    
-    - As the income increases, the assessment approaches the sale value of the house
-    
 
+Racial population distribution
 
-Median ATS Ratio by Sales Decile
+In stark relief 
+
 ```{r}
-tapply(resdata$atsratio, resdata$salesdecile, summary)
+ggplot() + 
+  geom_sf(aes(fill=Percent_Black), color='transparent', data = Mil_County4) +
+  geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
+  geom_sf(fill='grey90', color = 'white',data = lighter_color)+
+  scale_fill_viridis_c(name ='Percent Black')+
+  ggtitle("Milwaukee Census Tracts by Percent Black Population") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
+
+
+ggplot() + 
+  geom_sf(aes(fill=Percent_NotHispanic_White), color='transparent', data = Mil_County4) +
+  geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
+  geom_sf(fill='grey90', color = 'white',data = lighter_color)+
+  scale_fill_viridis_c(name ='Percent White')+
+  ggtitle("Milwaukee Census Tracts by Percent White Population") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
+
+ggplot() + 
+  geom_sf(aes(fill=Percent_Hispanic), color='transparent', data = Mil_County4) +
+  geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
+  geom_sf(fill='grey90', color = 'white',data = lighter_color)+
+  scale_fill_viridis_c(name ='Percent Hispanic')+
+  ggtitle("Milwaukee Census Tracts by Percent Hispanic Population") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
 ```
 
-    - The Median Assessment to Sale ratio decreases as the sale price increases
-    
-    - As the sale price of a house increases, the assessment diverges from the sale value of the house
-    
-    - Higher prices homes are under assessed  
-    
+Socio-Economic Population distribution 
+
+```{r}
+ggplot() + 
+  geom_sf(aes(fill=IncomeDecile), color='transparent', data = Mil_County4) +
+  geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
+  geom_sf(fill='grey90', color = 'white',data = lighter_color)+
+  scale_fill_viridis_c(name ='Income Decile')+
+  ggtitle("Milwaukee Census Tracts by Income Deciles") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
+
+
+ggplot() + 
+  geom_sf(aes(fill=Percent_Renter), color='transparent', data = Mil_County4) +
+  geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
+  geom_sf(fill='grey90', color = 'white',data = lighter_color)+
+  scale_fill_viridis_c(name ='Percent Renter')+
+  ggtitle("Milwaukee Census Tracts by Percent Renter") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
+
+ggplot() + 
+  geom_sf(aes(fill=renterdecile), color='transparent', data = Mil_County4) +
+  geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
+  geom_sf(fill='grey90', color = 'white',data = lighter_color)+
+  scale_fill_viridis_c(name ='Percent Renter Deciles')+
+  ggtitle("Milwaukee Census Tracts by Percent Renter Deciles") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
+
+
+ggplot() + 
+  geom_sf(aes(fill=Percent_TotalPOPIncomeBelowPovRate), color='transparent', data = Mil_County4) +
+  geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
+  geom_sf(fill='grey90', color = 'white',data = lighter_color)+
+  scale_fill_viridis_c(name ='Percent of Population')+
+  ggtitle("Milwaukee Census Tracts by Percent Population with Income Below Poverty Rate") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
+
+```
+
+
+
+```{r}
+
+ggplot() + 
+  geom_sf(aes(fill=atsratiodecile), color='transparent', data = Mil_County4) +
+  geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
+  geom_sf(fill='grey90', color = 'white',data = lighter_color)+
+  scale_fill_viridis_c(name ='ATS Ratio Decile')+
+  ggtitle("Milwaukee Census Tracts by ATS Ratio Decile") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
+
+ggplot() + 
+  geom_sf(aes(fill=atsratioMedian), color='transparent', data = Mil_County4) +
+  geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
+  geom_sf(fill='grey90', color = 'white',data = lighter_color)+
+  scale_fill_viridis_c(name ='ATS Ratio Decile')+
+  ggtitle("Milwaukee Census Tracts by ATS Ratio Decile") + 
+  theme(axis.text.x = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks = element_blank(),
+        rect = element_blank())+
+  coord_sf()
+
+
+```
+
+
+We very plainly see patterns
+
+
+
+Next we go into Pre Regression Analysis
+
+First with Racial Demographics
+
     
 Median ATS Ratio by Percent Black Population Decile
 ```{r}
@@ -171,7 +322,8 @@ for (i in 1:10){
 BlackATS <- data.frame("Medians" = medians,
                        "Deciles" = deciles)
 
-lm(Medians ~ Deciles,data=BlackATS);anova(lm(Medians ~ Deciles,data=BlackATS))
+print(BlackATS)
+tapply(resdata$atsratio,resdata$blackdecile, summary)
 ```
 
     - The Median Assessment to Sale ratio decreases as the percent black population increases
@@ -183,8 +335,8 @@ lm(Medians ~ Deciles,data=BlackATS);anova(lm(Medians ~ Deciles,data=BlackATS))
     
 Median ATS Ratio by Percent White Population Decile
 ```{r}
-tapply(resdata$atsratio,resdata$whitedecile, summary)
-whitepop <- tapply(resdata$atsratio,resdata$whitedecile, summary)
+
+whitepop <- tapply(resdata$atsratio,resdata$white_nonhispanic_decile, summary)
 
 medians <- c()
 deciles <- 1:10
@@ -194,14 +346,8 @@ for (i in 1:10){
 WhiteATS <- data.frame("Medians" = medians,
                        "Deciles" = deciles)
 
-lm(Medians ~ Deciles,data=WhiteATS);anova(lm(Medians ~ Deciles,data=WhiteATS))
-
-plot(lm(atsratio ~ Percent_White, data=resdata))
-
-
-plot(lm(atsratio ~ Percent_Black, data=resdata)) # higher ats ratios the variance is going down
-# less variability around large ats ratios
-
+print(WhiteATS)
+tapply(resdata$atsratio,resdata$white_nonhispanic_decile, summary)
 ```
 
     - The Median Assessment to Sale ratio increases as the percent white population increases
@@ -212,10 +358,10 @@ plot(lm(atsratio ~ Percent_Black, data=resdata)) # higher ats ratios the varianc
     
     - Homes in white neighborhoods show the opposite trend to black neighborhoods
     
+
     
 Median ATS Ratio by Percent Hispanic Population Decile
 ```{r}
-tapply(resdata$atsratio, resdata$hispaniddecile, summary)
 hispanicpop <- tapply(resdata$atsratio, resdata$hispaniddecile, summary)
 
 medians <- c()
@@ -226,15 +372,141 @@ for (i in 1:10){
 HispATS <- data.frame("Medians" = medians,
                        "Deciles" = deciles)
 
-lm(Medians ~ Deciles,data=HispATS);anova(lm(Medians ~ Deciles,data=HispATS))
+print(HispATS)
+tapply(resdata$atsratio, resdata$hispaniddecile, summary)
+
 ```
 
 
     - See less of a trend here
     
+  
+Median ATS Ratio by Income Decile
+```{r}
+incomes <- tapply(resdata$atsratio,resdata$IncomeDecile, summary)
+
+medians <- c()
+deciles <- 1:10
+for (i in 1:10){
+  medians[i] <- as.numeric(incomes[[i]]['Median']) }
+
+IncomeATS <- data.frame("Medians" = medians,
+                       "Deciles" = deciles)
 
 
 
+print(IncomeATS)
+tapply(resdata$atsratio,resdata$IncomeDecile, summary)
+```
+
+    - The Median Assessment to Sale ratio increases as the Median Income of the tract Increase
     
+    - As the income increases, the assessment approaches the sale value of the house
     
+
+
+Median ATS Ratio by Sales Decile
+```{r}
+sales <- tapply(resdata$atsratio,resdata$salesdecile, summary)
+
+medians <- c()
+deciles <- 1:10
+for (i in 1:10){
+  medians[i] <- as.numeric(sales[[i]]['Median']) }
+
+SaleATS <- data.frame("Medians" = medians,
+                       "Deciles" = deciles)
+
+print(SaleATS)
+tapply(resdata$atsratio, resdata$salesdecile, summary)
+
+```
+
+    - The Median Assessment to Sale ratio decreases as the sale price increases
     
+    - As the sale price of a house increases, the assessment diverges from the sale value of the house
+    
+    - Higher prices homes are under assessed  
+    
+  
+Median ATS Ratio by Percent Population with Income Below Poverty Rate
+```{r}
+pov <- tapply(resdata$atsratio,resdata$TotalPOPIncome_PovertyRateDecile, summary)
+
+medians <- c()
+deciles <- 1:10
+for (i in 1:10){
+  medians[i] <- as.numeric(pov[[i]]['Median']) }
+
+PovATS <- data.frame("Medians" = medians,
+                       "Deciles" = deciles)
+
+print(PovATS)
+tapply(resdata$atsratio,resdata$TotalPOPIncome_PovertyRateDecile, summary)
+
+```
+
+Median ATS Ratio by Percent Renter Population
+```{r}
+renter <- tapply(resdata$atsratio,resdata$renterdecile, summary)
+
+medians <- c()
+deciles <- 1:10
+for (i in 1:10){
+  medians[i] <- as.numeric(renter[[i]]['Median']) }
+
+RentATS <- data.frame("Medians" = medians,
+                       "Deciles" = deciles)
+
+print(RentATS)
+tapply(resdata$atsratio,resdata$renterdecile, summary)
+```
+
+Mann Kendall Trend Test
+
+This is a test for monotonic trend
+```{r}
+cat("Black Population Deciles","\n")
+MannKendall(BlackATS$Medians)
+cat("---","\n")
+
+cat("White Population Deciles","\n")
+MannKendall(WhiteATS$Medians)
+cat("---","\n")
+
+cat("Hispanic Population Deciles","\n")
+MannKendall(HispATS$Medians)
+cat("---","\n")
+
+cat("Income Deciles","\n")
+MannKendall(IncomeATS$Medians)
+cat("---","\n")
+
+cat("Sale Price Deciles","\n")
+MannKendall(SaleATS$Medians)
+cat("---","\n")
+
+cat("Renter Population Deciles","\n")
+MannKendall(RentATS$Medians)
+cat("---","\n")
+
+cat("Poverty Rate Deciles","\n")
+MannKendall(PovATS$Medians)
+```
+
+Black, White, Income, Sale, & Poverty are found to have Monotonic trends
+
+Renter & Hispanic are found to not have Monotonic trends
+
+
+Assessing Correlations
+
+Consider large correlation plot of all variables needed for regression
+
+```{r}
+
+```
+
+
+
+ 

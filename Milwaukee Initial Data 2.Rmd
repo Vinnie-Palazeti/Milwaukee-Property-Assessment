@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 Library
-#install.packages("MuMIn")
+#install.packages("Kendall")
 ```{r}
 library(tidyverse)
 library(ggplot2)
@@ -21,6 +21,7 @@ library(lme4)
 library(lmerTest)
 library(MuMIn)
 library(corrplot)
+library(Kendall)
 ```
 
 Assignment Configuration
@@ -51,9 +52,9 @@ Cleaning
 # Left Join Census Data
 resdata <- resdata %>% left_join(popdat, by = "GEO_TRACT") %>% left_join(povdat, by= "GEO_TRACT")
 
-summary(resdata$SALEDATE) #Two Years of Data
-summary(resdata$SALEPRICE) #Nothing Above $10M
-summary(resdata$ASSESSEDVAL)
+#summary(resdata$SALEDATE) #Two Years of Data
+#summary(resdata$SALEPRICE) #Nothing Above $10M
+#summary(resdata$ASSESSEDVAL)
 
 #1 : Only Ordinary Sales
 
@@ -72,11 +73,11 @@ resdata <- filter(resdata, BLDTYPE != "11 - Duplex O/S" &
                     BLDTYPE != "22 - Dplx Bungalow")
 
 # Values not present in data
-unique(resdata$TYPE)
+#unique(resdata$TYPE)
 
 # Majority are NA
-resdata %>% 
-  filter(is.na(TYPE))
+#resdata %>% 
+#  filter(is.na(TYPE))
 
 # Remove one observation missing Assessment Value
 resdata <- filter(resdata, !is.na(resdata$ASSESSEDVAL))
@@ -86,7 +87,7 @@ resdata <- filter(resdata, !is.na(resdata$ASSESSEDVAL))
 #4. Eliminate Implausible Assessed-to-Sale Ratios (outside the 1.5xIQR range)
 resdata$atsratio <- resdata$ASSESSEDVAL/resdata$SALEPRICE
 
-quantile(resdata$atsratio)
+#quantile(resdata$atsratio)
 
 #5. Adjust for inflation in 2019
 
@@ -98,12 +99,12 @@ ue <- as.numeric(quantile(resdata$atsratio)[4]) + 1.5*IQR(resdata$atsratio)
 resdata <- filter(resdata, atsratio >= le)
 resdata <- filter(resdata, atsratio <= ue)
 
-summary(resdata$atsratio)
+#summary(resdata$atsratio)
 
 #5. How to Account for Sales Chasing
 # Don't Need To
 
-unique(resdata$BLDTYPE)
+#unique(resdata$BLDTYPE)
 
 resdata <- resdata %>% 
   mutate(BLDTYPE = ifelse(BLDTYPE == "C018 - Milwaukee Bungalow",
@@ -125,12 +126,12 @@ resdata <- resdata %>%
   ))
 
 
+TractAtsMedians <- resdata %>% group_by(GEO_TRACT) %>%
+  summarise(atsratioMedian = median(atsratio))
+
+resdata <- resdata %>% left_join(TractAtsMedians, by = c("GEO_TRACT"))
+
 ```
-
-```{r}
-
-```
-
 
 
 ## Census Demographics
@@ -173,6 +174,7 @@ resdata <- resdata %>%
         Majority_Black = ifelse(Percent_Black > 0.5,1,0),
         Percent_White = WHITE.POP/TOTAL.POP,
         Majority_White = ifelse(Percent_White > 0.5,1,0),
+        Percent_NotHispanic_White = NOT.HISPANIC.WHITE/TOTAL.POP,
         Percent_Hispanic = TOTAL.HISPANIC.POP/TOTAL.POP,
         Majority_Hispanic = ifelse(Percent_Hispanic > 0.5,1,0),
         
@@ -209,6 +211,10 @@ resdata$salesquintile <- ntile(resdata$SALEPRICE, 5)
 # Median Neighborhood Price
 resdata$MedSalesDecile <- ntile(resdata$MedianTractSalesPrice,10)
 
+# ATS Ratio
+resdata$atsratiodecile <- ntile(resdata$atsratio,10)
+
+
 # Percent Black Quartiles
 resdata$blackquintile <- ntile(resdata$Percent_Black,5)
 resdata$blackdecile <- ntile(resdata$Percent_Black,10)
@@ -216,6 +222,8 @@ resdata$blackdecile <- ntile(resdata$Percent_Black,10)
 # Percent White Quartiles
 resdata$whitequintile <- ntile(resdata$Percent_White,5)
 resdata$whitedecile <- ntile(resdata$Percent_White,10)
+
+resdata$white_nonhispanic_decile <- ntile(resdata$Percent_NotHispanic_White,10)
 
 # Percent Hispanic
 resdata$hispaniddecile <- ntile(resdata$Percent_Hispanic,10)
@@ -316,6 +324,18 @@ summary(resdata$PctSalePriceDiff)
 #resdata %>% filter(IncomeDecile == 10 & salesdecile == 10) %>% select(SALEPRICE,ASSESSEDVAL)
 ```
 
+
+```{r}
+data("PrecipGL")
+View(PrecipGL)
+?MannKendall()
+
+plot(resdata$salesdecile,resdata$atsratio)
+
+str(PrecipGL)
+```
+
+
 Correlations
 ```{r}
 cors <- resdata %>% 
@@ -331,6 +351,11 @@ corrplot(cors,method='square', type = 'lower'); cors
 
 
 ```
+
+
+
+
+
 
 
 EDA Trends
