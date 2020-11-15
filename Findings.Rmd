@@ -65,6 +65,9 @@ ggplot(resdata, aes(log(SALEPRICE))) +
 
 ggplot(resdata, aes(log(ASSESSEDVAL))) +
   geom_histogram(bins = 150)
+
+ggplot(resdata, aes(log(LANDSIZE))) +
+  geom_histogram(bins = 150)
 ```
 
 
@@ -613,12 +616,14 @@ hist(resdata$atsratio)
 samp <- sample(resdata$atsratio, size = 4000, replace = F)
 hist(samp)
 
-
+# Normal Distribution
 
 gof.norm <- gofTest(samp, distribution = "norm")
 gof.norm$p.value
 
 plot(gof.norm)
+
+# Log Transformed
 
 gof.lognorm <- gofTest(log(samp), distribution = "norm")
 gof.lognorm$p.value
@@ -626,7 +631,7 @@ gof.lognorm$p.value
 plot(gof.lognorm)
 
 
-
+# Gamma Distribution
 
 
 gof.gamma <- gofTest(samp, distribution = "gamma")
@@ -634,6 +639,7 @@ gof.gamma$p.value
 
 plot(gof.gamma)
 
+# Gamma with Corrected MLE
 
 gof.gammacorrectedmle <- gofTest(samp,distribution = "gamma",
                                  est.arg.list = list(method="bcmle"))
@@ -642,26 +648,31 @@ gof.gammacorrectedmle$p.value
 plot(gof.gammacorrectedmle)
 
 
-
+# KS Test Gamma
 
 gof.gammaks <- gofTest(samp, test = 'ks',distribution = "gamma")
 gof.gammaks$p.value
 
 plot(gof.gammaks)
 
+# Lnorm Test
 
 gof.lnorm <- gofTest(samp, distribution = "lnorm")
 gof.lnorm$p.value
 
 plot(gof.lnorm)
 
-
+# Shapiro Wilk Test
 
 shapiro.test(samp)
+
+# KS Test
 
 ks.test(samp,'pnorm',m=0.89,sd=0.13)
 
 ks.test(samp,'pnorm',m=0,sd=1)
+
+# Box Cox
 
 boxcox.list <- boxcox(samp)
 
@@ -674,57 +685,242 @@ plot(boxcox.list, plot.type = "Q-Q Plots")
  
 Regression Analysis
 
+Quick Clean
 ```{r}
-
-mod1 <- lmer(atsratio ~ LogMedianIncome + Percent_Black + Percent_Renter + Percent_TotalPOPIncomeBelowPovRate + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT), data = fitdata)
-
-# RF source of variability
-# if GEOtract as fixed effect, losing df
-# only loosing 1 df with RF, 
-
-summary(mod1)
-anova(mod1)
-
-ICC = (0.07813)/(0.75515+0.07813)
-ICC
-
-r.squaredGLMM(mod1)
-
-# Of the variance of an observation, 9.4% of this variation is the result of differences 
-# between Census Tracts. 
-
-# 90.6% of this variation is the result of differences within Census Tracts
+resdata$KITCHEN_FAC <- factor(resdata$KITCHEN_RTG)
+resdata$COND_FAC <- factor(resdata$COND)
+resdata$QUAL_FAC <- factor(resdata$QUAL_recode)
+resdata$BATH_FAC <- factor(resdata$FULLBATH_RTG)
+resdata$TYPE_FAC <- factor(resdata$BLDTYPE_recode)
+```
 
 
 
-mod2 <- lmer(atsratio ~ LogMedianIncome + Percent_Black + Percent_Renter + Percent_TotalPOPIncomeBelowPovRate + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + Kitchen_Excellent + Kitchen_Fair + Kitchen_Good +  Kitchen_Poor + Kitchen_VeryGood + Kitchen_VeryPoor + KITCHENS + FullBath_Excellent + FullBath_Fair + FullBath_Good + FullBath_Poor + FullBath_VeryGood + FULLBATHS + Cond_VeryPoor + Cond_Excellent + Cond_Fair + Cond_Good + Cond_Poor + Cond_VeryGood + Qual_A + Qual_B + Qual_D + Qual_E +  BEDROOMS + Cape_Cod + Milwaukee_Bungalow + Res_OS_A + Colonial + Duplex + Res_OS_2sty + Other, data = fitdata)
+Black Population 
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_Black,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice, LANDSIZE,
+         GEO_TRACT)
 
 
-summary(mod2)
-anova(mod2)
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
 
-ICC = (0.1184)/(0.6306+0.1184)
-ICC
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH )
 
 
-vif(mod2)
-plot(mod2)
+fitdata <- cbind(fitdata,covariates)
+
+
+mod <- lmer(atsratio ~ LogMedianIncome + Percent_Black + LANDSIZE + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC, data = fitdata)
+
+summary(mod)
+#vcov(mod)
+anova(mod)
+plot(mod)
+
+vif(mod)
+
+```
+
+
+Hispanic Population
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_Hispanic,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice,LANDSIZE,
+         GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH )
+
+
+fitdata <- cbind(fitdata,covariates)
+
+
+mod <- lmer(atsratio ~ LogMedianIncome + Percent_Hispanic + LANDSIZE + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC, data = fitdata)
+
+summary(mod)
+#vcov(mod)
+anova(mod)
+
+
+vif(mod)
+plot(mod)
 ```
  
 
+White Population
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_NotHispanic_White,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice, LANDSIZE
+         GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH )
+
+
+fitdata <- cbind(fitdata,covariates)
+
+
+mod <- lmer(atsratio ~ LogMedianIncome + Percent_NotHispanic_White + LANDSIZE + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC, data = fitdata)
+
+summary(mod)
+#vcov(mod)
+anova(mod)
+
+```
+
+
+
+Impoverished Population
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_TotalPOPIncomeBelowPovRate,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice, LANDSIZE,
+         GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH )
+
+
+fitdata <- cbind(fitdata,covariates)
+
+
+mod <- lmer(atsratio ~ LogMedianIncome + Percent_TotalPOPIncomeBelowPovRate + LANDSIZE + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC, data = fitdata)
+
+summary(mod)
+#vcov(mod)
+anova(mod)
+
+```
+
+ 
+ 
+Focus Just on Income 
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio, Percent_Black, Percent_NotHispanic_White, Percent_Hispanic,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice, LANDSIZE,
+         GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH )
+
+
+fitdata <- cbind(fitdata,covariates)
+
+
+mod <- lmer(atsratio ~ LogMedianIncome + Percent_Black + Percent_NotHispanic_White + LANDSIZE +Percent_Hispanic + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC, data = fitdata)
+
+summary(mod)
+#vcov(mod)
+anova(mod)
+```
+ 
+ 
+Income Deciles 
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice, LANDSIZE,
+         GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(IncomeDecile,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH )
+
+
+fitdata <- cbind(fitdata,covariates)
+
+
+mod <- lmer(atsratio ~  IncomeDecile + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + LANDSIZE + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC, data = fitdata)
+
+summary(mod)
+#vcov(mod)
+anova(mod)
+
+vif(mod)
+
+```
  
  
  
+SubPopulation Analysis 
+
+Focus only on the neighborhoods with concentrated populations
  
+```{r}
+
+filtdata <- resdata %>% filter(blackdecile > 7)
+
+
+fitdata <- filtdata %>% 
+  select(atsratio,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice, LANDSIZE,
+         GEO_TRACT)
  
- 
- 
- 
- 
- 
- 
- 
- 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% filter(blackdecile > 7) %>% select(LogMedianIncome,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH )
+
+
+fitdata <- cbind(fitdata,covariates)
+
+
+mod <- lmer(atsratio ~  LogMedianIncome + LogMedianTractSalesPrice  + LANDSIZE + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC, data = fitdata)
+
+summary(mod)
+#vcov(mod)
+anova(mod)
+
+vif(mod)
+
+```
  
  
  

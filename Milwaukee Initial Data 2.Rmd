@@ -211,6 +211,8 @@ resdata$Cond_VeryGood <- ifelse(resdata$COND == "VG - Very Good",1,0)
 resdata$Cond_VeryPoor <- ifelse(resdata$COND == "VP - Very Poor",1,0)
 
 
+resdata$LogLandSize <- log(resdata$LANDSIZE)
+
 TractAtsMedians <- resdata %>% group_by(GEO_TRACT) %>%
   summarise(atsratioMedian = median(atsratio))
 
@@ -617,6 +619,42 @@ r.squaredGLMM(mod5)
 ```
 
 #blquant=cut(resdata$Percent_Black, breaks = quantile(resdata$Percent_Black, p=seq(0,1,length.out = 8)), include.lowest = T)
+
+Regression attempts
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_Black,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+fitdata <- cbind(fitdata,covariates)
+
+mod <- lmer(atsratio ~ LogMedianIncome + Percent_Black + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + Kitchen_Excellent + Kitchen_Fair + Kitchen_Good +  Kitchen_Poor + Kitchen_VeryGood + Kitchen_VeryPoor + KITCHENS + FullBath_Excellent + FullBath_Fair + FullBath_Good + FullBath_Poor + FullBath_VeryGood + FULLBATHS + Cond_VeryPoor + Cond_Excellent + Cond_Fair + Cond_Good + Cond_Poor + Cond_VeryGood + Qual_A + Qual_B + Qual_D + Qual_E +  BEDROOMS + Cape_Cod + Milwaukee_Bungalow + Res_OS_A + Colonial + Duplex + Res_OS_2sty + Other, data = fitdata)
+
+summary(mod)
+anova(mod)
+
+ICC = (0.1215)/(0.6306 +0.1215)
+ICC
+
+r.squaredGLMM(mod)
+
+# Of the variance of an observation, 16.15% of this variation is the result of differences 
+# between Census Tracts. 
+
+# 83.85 % of this variation is the result of differences within Census Tracts
+
+
+```
 
 
 Visuals
