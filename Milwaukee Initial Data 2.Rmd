@@ -227,10 +227,13 @@ resdata <- resdata %>% left_join(TractAtsMedians, by = c("GEO_TRACT"))
 info <- resdata %>%
   group_by(GEO_TRACT) %>%
   summarise(MedianTractSalesPrice = median(SALEPRICE),
-            LogMedianTractSalesPrice = log(MedianTractSalesPrice))
+            LogMedianTractSalesPrice = log(MedianTractSalesPrice),
+            MedianLandSize = median(LANDSIZE),
+            LogMedianLandSize = log(MedianLandSize))
 
 resdata <- resdata %>% left_join(info, by="GEO_TRACT") %>%
-  mutate(PriceDeviation = (SALEPRICE - MedianTractSalesPrice))
+  mutate(PriceDeviation = (SALEPRICE - MedianTractSalesPrice),
+         LandSizeDeviation = (LANDSIZE - MedianLandSize))
 
 
 info <- resdata %>%
@@ -254,6 +257,12 @@ resdata <- resdata %>%
         PctSalePriceDiff = ((SALEPRICE-MedianTractSalesPrice)/MedianTractSalesPrice)*100,
         PctSalePriceDiff_Above = ifelse(PctSalePriceDiff > 0, PctSalePriceDiff,0),
         PctSalePriceDiff_Below = ifelse(PctSalePriceDiff < 0, PctSalePriceDiff,0),
+        
+        # Deviation From Land Size
+        PctLandSizeDiff = ((LANDSIZE-MedianLandSize)/MedianLandSize)*100,
+        PctLandSizeDiff_Above = ifelse(PctLandSizeDiff > 0, PctLandSizeDiff,0),
+        PctLandSizeDiff_Below = ifelse(PctLandSizeDiff < 0, PctLandSizeDiff,0),
+        
         
         # Racial Demographics
         Percent_Black = BLACK.POP/TOTAL.POP,
@@ -377,6 +386,7 @@ tapply(resdata$atsratio,resdata$TotalPOPIncome_PovertyRateDecile, summary)
 
 # Total Population Below Poverty Income Ratio
 tapply(resdata$atsratio,resdata$POPIncome_PovertyRatioDecile, summary)
+tapply(resdata$atsratio, resdata$MedSalesDecile, summary)
 
 
 Maj_Black <- resdata %>%
@@ -857,6 +867,8 @@ ggplot() +
 ###
 
 
+
+
 # Another Method of Grabbing Maps
 
 ```{r}
@@ -895,3 +907,240 @@ wi.tracts <- wi.tracts %>%
 ggplot(wi.tracts) + geom_sf()
 ```
 
+We were curious to see if the LASSO procedure would shrink any coefficients to zero
+
+Black Population
+```{r}
+
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_Black,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+
+fitdata <- cbind(fitdata,covariates)
+
+lasso_data <- fitdata %>% select(-c("GEO_TRACT"))
+
+x_vars <- model.matrix(atsratio ~.,lasso_data)[,-1]
+y_var <- lasso_data$atsratio
+grid = 10^seq(10, -2, length = 100)
+
+lasso <- glmnet(x_vars, y_var, alpha = 1, lambda = grid)
+plot(lasso)
+
+cv.out = cv.glmnet(x_vars,y_var, alpha = 1)
+plot(cv.out)
+
+bestlam <- cv.out$lambda.min
+out <- glmnet(x_vars,y_var, alpha = 1, lambda=grid)
+lasso_coef = predict(out,type='coefficients',s=bestlam)
+lasso_coef
+
+```
+
+
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_NotHispanic_White,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+
+fitdata <- cbind(fitdata,covariates)
+
+lasso_data <- fitdata %>% select(-c("GEO_TRACT"))
+
+x_vars <- model.matrix(atsratio ~.,lasso_data)[,-1]
+y_var <- lasso_data$atsratio
+grid = 10^seq(10, -2, length = 100)
+
+lasso <- glmnet(x_vars, y_var, alpha = 1, lambda = grid)
+plot(lasso)
+
+cv.out = cv.glmnet(x_vars,y_var, alpha = 1)
+plot(cv.out)
+
+bestlam <- cv.out$lambda.min
+out <- glmnet(x_vars,y_var, alpha = 1, lambda=grid)
+lasso_coef = predict(out,type='coefficients',s=bestlam)
+lasso_coef
+```
+
+
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_Hispanic,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+
+fitdata <- cbind(fitdata,covariates)
+
+lasso_data <- fitdata %>% select(-c("GEO_TRACT"))
+
+x_vars <- model.matrix(atsratio ~.,lasso_data)[,-1]
+y_var <- lasso_data$atsratio
+grid = 10^seq(10, -2, length = 100)
+
+lasso <- glmnet(x_vars, y_var, alpha = 1, lambda = grid)
+plot(lasso)
+
+cv.out = cv.glmnet(x_vars,y_var, alpha = 1)
+plot(cv.out)
+
+bestlam <- cv.out$lambda.min
+out <- glmnet(x_vars,y_var, alpha = 1, lambda=grid)
+lasso_coef = predict(out,type='coefficients',s=bestlam)
+lasso_coef
+
+```
+
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+
+fitdata <- cbind(fitdata,covariates)
+
+lasso_data <- fitdata %>% select(-c("GEO_TRACT"))
+
+x_vars <- model.matrix(atsratio ~.,lasso_data)[,-1]
+y_var <- lasso_data$atsratio
+grid = 10^seq(10, -2, length = 100)
+
+lasso <- glmnet(x_vars, y_var, alpha = 1, lambda = grid)
+plot(lasso)
+
+cv.out = cv.glmnet(x_vars,y_var, alpha = 1)
+plot(cv.out)
+
+bestlam <- cv.out$lambda.min
+out <- glmnet(x_vars,y_var, alpha = 1, lambda=grid)
+lasso_coef = predict(out,type='coefficients',s=bestlam)
+lasso_coef
+
+```
+
+
+
+
+
+
+
+
+
+GOODNESS OF FIT
+
+We want to test the distribution of our Dependent variable 
+
+##### NEED HELP #####
+
+```{r}
+set.seed(10)
+hist(resdata$atsratio)
+samp <- sample(resdata$atsratio, size = 4000, replace = F)
+hist(samp)
+
+# Normal Distribution
+
+gof.norm <- gofTest(samp, distribution = "norm")
+gof.norm$p.value
+
+plot(gof.norm)
+
+# Log Transformed
+
+gof.lognorm <- gofTest(log(samp), distribution = "norm")
+gof.lognorm$p.value
+
+plot(gof.lognorm)
+
+
+# Gamma Distribution
+
+
+gof.gamma <- gofTest(samp, distribution = "gamma")
+gof.gamma$p.value
+
+plot(gof.gamma)
+
+# Gamma with Corrected MLE
+
+gof.gammacorrectedmle <- gofTest(samp,distribution = "gamma",
+                                 est.arg.list = list(method="bcmle"))
+gof.gammacorrectedmle$p.value
+
+plot(gof.gammacorrectedmle)
+
+
+# KS Test Gamma
+
+gof.gammaks <- gofTest(samp, test = 'ks',distribution = "gamma")
+gof.gammaks$p.value
+
+plot(gof.gammaks)
+
+# Lnorm Test
+
+gof.lnorm <- gofTest(samp, distribution = "lnorm")
+gof.lnorm$p.value
+
+plot(gof.lnorm)
+
+# Shapiro Wilk Test
+
+shapiro.test(samp)
+
+# KS Test
+
+ks.test(samp,'pnorm',m=0.89,sd=0.13)
+
+ks.test(samp,'pnorm',m=0,sd=1)
+
+# Box Cox
+
+boxcox.list <- boxcox(samp)
+
+plot(boxcox.list)
+
+plot(boxcox.list, plot.type = "Q-Q Plots") 
+
+```
