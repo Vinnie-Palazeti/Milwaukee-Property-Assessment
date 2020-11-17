@@ -27,7 +27,9 @@ Continuous Variables of Interest
 Sale Price, Land Size, Land Value, Improvement Value, Assessment Value
 ```{r}
 ggplot(Initial, aes(SALEPRICE)) +
-  geom_histogram(bins = 200)
+  geom_histogram(bins = 200) +
+  xlab("Sale Price") + 
+  ylab("Frequency")
 
 ggplot(Initial, aes(ASSESSEDVAL)) +
   geom_histogram(bins = 200)
@@ -41,7 +43,10 @@ ggplot(Initial, aes(LANDVAL)) +
 Initial$atsratio <- Initial$ASSESSEDVAL / Initial$SALEPRICE
 
 ggplot(Initial, aes(atsratio)) +
-  geom_histogram(bins = 200)
+  geom_histogram(bins = 200)  +
+  xlab("ATS Ratio") + 
+  ylab("Frequency")
+  
 
 ```
 
@@ -57,11 +62,14 @@ Look at effect of this change on distribution of ats ratio
 
 ```{r}
 ggplot(resdata, aes(atsratio)) +
-  geom_histogram(bins = 200)
-
-
+  geom_histogram(bins = 200) +
+  xlab("ATS Ratio") + 
+  ylab("Frequency")
+  
 ggplot(resdata, aes(log(SALEPRICE))) +
-  geom_histogram(bins = 150)
+  geom_histogram(bins = 150) +
+  xlab("Sale Price") + 
+  ylab("Frequency")
 
 ggplot(resdata, aes(log(ASSESSEDVAL))) +
   geom_histogram(bins = 150)
@@ -80,17 +88,26 @@ BLDFreqs <- resdata %>% group_by(BLDTYPE) %>% summarise(n = n())
 plotgroup <- resdata %>% left_join(BLDFreqs, by = c("BLDTYPE"))
 
 ggplot(filter(plotgroup, n > 400), aes(BLDTYPE)) +
-  geom_bar() #+ theme(axis.text.x = element_blank())
+  geom_bar() + 
+  xlab("Building Type") + 
+  ylab("Frequency")
+
+
 
 level_order_qual <- c("A","B","C","D","E","NA")
 
-ggplot(resdata, aes(x = factor(QUAL, level = level_order_qual))) +
-  geom_bar()# + theme(axis.text.x = element_blank())
+ggplot(resdata, aes(x = factor(QUAL_recode, level = level_order_qual))) +
+  geom_bar() + 
+  xlab("Quality") + 
+  ylab("Frequency")
+
 
 level_order_cond <- c("EX - Excellent","VG - Very Good","GD - Good","AV - Average","FR - Fair","PR - Poor","VP - Very Poor","UN - Unsound")
 
 ggplot(resdata, aes(x = factor(COND, level = level_order_cond))) +
-  geom_bar()# + theme(axis.text.x = element_blank())
+  geom_bar()+ 
+  xlab("Condition") + 
+  ylab("Frequency")
 
 ggplot(resdata, aes(NUM_BLDS)) +
   geom_bar()
@@ -108,8 +125,23 @@ Temporal Variables
 Date sold, Year Built
 ```{r}
 ggplot(resdata, aes(SALEDATE,fill = factor(QUAL_recode, level = level_order_qual))) +
+  geom_histogram(bins=100) + 
+  theme(legend.title=element_blank()) + 
+  xlab("Sale Date & Quality") + 
+  ylab("Frequency")
+
+ggplot(resdata, aes(SALEDATE)) +
   geom_histogram(bins=100) +
-  theme(legend.title=element_blank())
+  theme(legend.title=element_blank()) + 
+  xlab("Sale Date") + 
+  ylab("Frequency")
+
+
+ggplot(resdata, aes(SALEDATE, fill = factor(atsratiodecile))) +
+  geom_histogram(bins=100) +
+  theme(legend.title=element_blank()) + 
+  xlab("Sale Date & ATS Ratio") + 
+  ylab("Frequency")
 
 ggplot(resdata, aes(YEARBLT, fill = factor(QUAL_recode, level = level_order_qual))) +
   geom_histogram(bins=100) +
@@ -120,6 +152,37 @@ ggplot(resdata, aes(YEARBLT, fill = factor(COND, level = level_order_cond))) +
   theme(legend.title=element_blank())
 
 ```
+
+Census Data
+
+```{r}
+ggplot(resdata, aes(TOTAL.POP)) + 
+  geom_histogram()
+
+ggplot(resdata, aes(MEDIAN.INCOME)) + 
+  geom_histogram()
+
+
+ggplot(resdata, aes(Percent_NotHispanic_White)) + 
+  geom_histogram() + 
+  xlab("Percent White") + 
+  ylab("Frequency")
+
+ggplot(resdata, aes(Percent_Black)) + 
+  geom_histogram() + 
+  xlab("Percent Black") + 
+  ylab("Frequency")
+
+ggplot(resdata, aes(Percent_Hispanic)) + 
+  geom_histogram() + 
+  xlab("Percent Hispanic") + 
+  ylab("Frequency")
+
+```
+
+
+
+
 
 
 Visualizations of variables with ats ratio
@@ -185,7 +248,7 @@ ggplot() +
   geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
   geom_sf(fill='grey90', color = 'white',data = lighter_color)+
   scale_fill_viridis_c(name ='Percent Black')+
-  ggtitle("Milwaukee Census Tracts by Percent Black Population") + 
+  #ggtitle("Milwaukee Census Tracts by Percent Black Population") + 
   theme(axis.text.x = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks = element_blank(),
@@ -198,7 +261,7 @@ ggplot() +
   geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
   geom_sf(fill='grey90', color = 'white',data = lighter_color)+
   scale_fill_viridis_c(name ='Percent White')+
-  ggtitle("Milwaukee Census Tracts by Percent White Population") + 
+  #ggtitle("Milwaukee Census Tracts by Percent White Population") + 
   theme(axis.text.x = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks = element_blank(),
@@ -210,7 +273,7 @@ ggplot() +
   geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
   geom_sf(fill='grey90', color = 'white',data = lighter_color)+
   scale_fill_viridis_c(name ='Percent Hispanic')+
-  ggtitle("Milwaukee Census Tracts by Percent Hispanic Population") + 
+  #ggtitle("Milwaukee Census Tracts by Percent Hispanic Population") + 
   theme(axis.text.x = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks = element_blank(),
@@ -226,7 +289,7 @@ ggplot() +
   geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
   geom_sf(fill='grey90', color = 'white',data = lighter_color)+
   scale_fill_viridis_c(name ='Income Decile')+
-  ggtitle("Milwaukee Census Tracts by Income Deciles") + 
+  #ggtitle("Milwaukee Census Tracts by Income Deciles") + 
   theme(axis.text.x = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks = element_blank(),
@@ -239,7 +302,7 @@ ggplot() +
   geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
   geom_sf(fill='grey90', color = 'white',data = lighter_color)+
   scale_fill_viridis_c(name ='Percent Renter')+
-  ggtitle("Milwaukee Census Tracts by Percent Renter") + 
+  #ggtitle("Milwaukee Census Tracts by Percent Renter") + 
   theme(axis.text.x = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks = element_blank(),
@@ -251,7 +314,7 @@ ggplot() +
   geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
   geom_sf(fill='grey90', color = 'white',data = lighter_color)+
   scale_fill_viridis_c(name ='Percent Renter Deciles')+
-  ggtitle("Milwaukee Census Tracts by Percent Renter Deciles") + 
+  #ggtitle("Milwaukee Census Tracts by Percent Renter Deciles") + 
   theme(axis.text.x = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks = element_blank(),
@@ -263,8 +326,8 @@ ggplot() +
   geom_sf(aes(fill=Percent_TotalPOPIncomeBelowPovRate), color='transparent', data = Mil_County4) +
   geom_sf(fill = 'transparent', color='white', data = Mil_County4) + 
   geom_sf(fill='grey90', color = 'white',data = lighter_color)+
-  scale_fill_viridis_c(name ='Percent of Population')+
-  ggtitle("Milwaukee Census Tracts by Percent Population with Income Below Poverty Rate") + 
+  scale_fill_viridis_c(name ='Percent of in Poverty')+
+  #ggtitle("Milwaukee Census Tracts by Percent Population with Income Below Poverty Rate") + 
   theme(axis.text.x = element_blank(),
         axis.text.y = element_blank(),
         axis.ticks = element_blank(),
@@ -519,11 +582,19 @@ Obs_cors <- cor(Observation_independents)
 
 corrplot(Obs_cors,method='circle', type = 'lower', tl.col="black")
 
+corrplot(Obs_cors,method='circle', tl.col="black")
 
 Tract_independents <- resdata  %>% select(GEO_TRACT,MedianATSRatio,MEDIAN.INCOME,Percent_Black,Percent_NotHispanic_White,Percent_Hispanic,Percent_TotalPOPIncomeBelowPovRate)
 
 Tract_independents <- Tract_independents %>% 
-  select(-c(GEO_TRACT))
+  select(-c(GEO_TRACT)) %>%
+  rename(`Median Income` = `MEDIAN.INCOME`,
+         `Percent Black` = `Percent_Black`,
+         `Median ATS Ratio` = `MedianATSRatio`,
+         `Percent White` = `Percent_NotHispanic_White`,
+         `Percent Hispanic` = `Percent_Hispanic`,
+         `Percent Income Poverty` = `Percent_TotalPOPIncomeBelowPovRate`
+         )
 
 Tract_cors <- cor(Tract_independents)
 
@@ -541,7 +612,9 @@ plot(lm(MEDIAN.INCOME ~ Percent_Black, data = resdata))
 
 ggplot(resdata, aes(x = Percent_Black, y = MEDIAN.INCOME)) +
   geom_point() +
-  geom_smooth(method = lm)
+  geom_smooth(method = lm) +
+  xlab("Percent Black") +
+  ylab("Median Income")
 
 
 
@@ -565,11 +638,13 @@ ggplot(resdata, aes(x = Percent_Hispanic, y = MEDIAN.INCOME)) +
 
 
 We were curious to see if the LASSO procedure would shrink any coefficients to zero
+
+Black Population
 ```{r}
 
 fitdata <- resdata %>% 
   select(atsratio,
-         Percent_Black,Percent_Renter,Percent_TotalPOPIncomeBelowPovRate,
+         Percent_Black,
          PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
          LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
  
@@ -584,7 +659,118 @@ covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, 
 
 fitdata <- cbind(fitdata,covariates)
 
-lasso_data <- fitdata %>% select(-c("GEO_TRACT", "Percent_Renter"))
+lasso_data <- fitdata %>% select(-c("GEO_TRACT"))
+
+x_vars <- model.matrix(atsratio ~.,lasso_data)[,-1]
+y_var <- lasso_data$atsratio
+grid = 10^seq(10, -2, length = 100)
+
+lasso <- glmnet(x_vars, y_var, alpha = 1, lambda = grid)
+plot(lasso)
+
+cv.out = cv.glmnet(x_vars,y_var, alpha = 1)
+plot(cv.out)
+
+bestlam <- cv.out$lambda.min
+out <- glmnet(x_vars,y_var, alpha = 1, lambda=grid)
+lasso_coef = predict(out,type='coefficients',s=bestlam)
+lasso_coef
+
+```
+
+
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_NotHispanic_White,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+
+fitdata <- cbind(fitdata,covariates)
+
+lasso_data <- fitdata %>% select(-c("GEO_TRACT"))
+
+x_vars <- model.matrix(atsratio ~.,lasso_data)[,-1]
+y_var <- lasso_data$atsratio
+grid = 10^seq(10, -2, length = 100)
+
+lasso <- glmnet(x_vars, y_var, alpha = 1, lambda = grid)
+plot(lasso)
+
+cv.out = cv.glmnet(x_vars,y_var, alpha = 1)
+plot(cv.out)
+
+bestlam <- cv.out$lambda.min
+out <- glmnet(x_vars,y_var, alpha = 1, lambda=grid)
+lasso_coef = predict(out,type='coefficients',s=bestlam)
+lasso_coef
+```
+
+
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_Hispanic,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+
+fitdata <- cbind(fitdata,covariates)
+
+lasso_data <- fitdata %>% select(-c("GEO_TRACT"))
+
+x_vars <- model.matrix(atsratio ~.,lasso_data)[,-1]
+y_var <- lasso_data$atsratio
+grid = 10^seq(10, -2, length = 100)
+
+lasso <- glmnet(x_vars, y_var, alpha = 1, lambda = grid)
+plot(lasso)
+
+cv.out = cv.glmnet(x_vars,y_var, alpha = 1)
+plot(cv.out)
+
+bestlam <- cv.out$lambda.min
+out <- glmnet(x_vars,y_var, alpha = 1, lambda=grid)
+lasso_coef = predict(out,type='coefficients',s=bestlam)
+lasso_coef
+
+```
+
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         PctSalePriceDiff_Below,PctSalePriceDiff_Above,PctSalePriceDiff_Below,
+         LogMedianIncome,LogMedianTractSalesPrice,GEO_TRACT)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+
+fitdata <- cbind(fitdata,covariates)
+
+lasso_data <- fitdata %>% select(-c("GEO_TRACT"))
 
 x_vars <- model.matrix(atsratio ~.,lasso_data)[,-1]
 y_var <- lasso_data$atsratio

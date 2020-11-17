@@ -220,7 +220,6 @@ resdata <- resdata %>% left_join(TractAtsMedians, by = c("GEO_TRACT"))
 
 ```
 
-
 ## Census Demographics
 ```{r}
 
