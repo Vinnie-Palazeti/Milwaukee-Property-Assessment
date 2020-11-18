@@ -608,6 +608,7 @@ In a crude way we can check the relationship between correlated variables via R^
 #plot(lm(MEDIAN.INCOME ~ Percent_Black, data = resdata))
 
 
+
 ggplot(resdata, aes(x = Percent_Black, y = MEDIAN.INCOME)) +
   geom_point() +
   geom_smooth(method = lm) +
@@ -622,7 +623,11 @@ ggplot(resdata, aes(x = Percent_Black, y = MEDIAN.INCOME)) +
 
 ggplot(resdata, aes(x = Percent_NotHispanic_White, y = MEDIAN.INCOME)) +
   geom_point() +
-  geom_smooth(method = lm)
+  geom_smooth(method = lm) +
+  xlab("Percent White") +
+  ylab("Median Income")
+
+
 
 
 #summary(lm(MEDIAN.INCOME ~ Percent_Hispanic, data = resdata))
@@ -630,7 +635,11 @@ ggplot(resdata, aes(x = Percent_NotHispanic_White, y = MEDIAN.INCOME)) +
 
 ggplot(resdata, aes(x = Percent_Hispanic, y = MEDIAN.INCOME)) +
   geom_point() +
-  geom_smooth(method = lm)
+  geom_smooth(method = lm) +
+  xlab("Percent Hispanic") +
+  ylab("Median Income")
+
+
 
 ```
 
@@ -705,6 +714,8 @@ summary(mod)
 #vcov(mod)
 anova(mod)
 
+ICC = 0.1869 / (0.1869+0.5219)
+1-ICC
 vif(mod)
 qqnorm(resid(mod))
 abline(0,1)
@@ -749,6 +760,9 @@ summary(mod)
 #vcov(mod)
 anova(mod)
 
+
+ICC = 0.1510/(0.1510 + 0.5266)
+1 - ICC
 vif(mod)
 qqnorm(resid(mod))
 abline(0,1)
@@ -762,6 +776,7 @@ ggplot(data.frame(eta=predict(mod,type="link"),pearson=residuals(mod,type="pears
 
 
 ```
+
 ```{r}
 ATSRatio_stdev <- sd(resdata$atsratio)
 
@@ -773,10 +788,10 @@ cat("In this model we see that Percent Black Population has a coefficient equal 
 cat("Which is about 22% of a standard deviation","\n")
 cat("---","\n")
 
-cat("So, 22% of", ATSRatio_stdev,"is:",ATSRatio_stdev*0.223,"or 2.29%", "\n")
+cat("So, 22% of", ATSRatio_stdev,"is:",ATSRatio_stdev*0.223,"or 2.92%", "\n")
 cat("---","\n")
 
-cat("In other words, a neighboorhood with a one standard deviation increase in the Percent Black Population is subject to a 2.29% decrease in their taxable property value","\n")
+cat("In other words, a neighboorhood with a one standard deviation increase in the Percent Black Population is subject to a 2.92% decrease in their taxable property value","\n")
 
 cat("---","\n")
 
@@ -852,6 +867,8 @@ fitdata <- cbind(fitdata,covariates)
 
 mod <- lmer(atsratio ~ Percent_NotHispanic_White + LogMedianIncome + LogMedianLandSize + PctLandSizeDiff_Above + PctLandSizeDiff_Below  + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear, data = fitdata)
 
+ICC = 0.1249 / (0.1249+0.5235)
+
 summary(mod)
 #vcov(mod)
 anova(mod)
@@ -867,6 +884,7 @@ ggplot(data.frame(eta=predict(mod,type="link"),pearson=residuals(mod,type="pears
   ylab("Standardized Residuals") +
   theme_bw()
 
+nrow(resdata)
 ```
 
 ```{r}
