@@ -671,11 +671,11 @@ cat("The standard deviation of assessment ratio is", ATSRatio_stdev,"\n")
 cat("---","\n")
 
 
-cat("In the first model we see that Log Median Tract Income has a coefficient equal to 0.1710","\n")
-cat("Which is about 17% of a standard deviation","\n")
+cat("In the first model we see that Log Median Tract Income has a coefficient equal to 0.1501","\n")
+cat("Which is about 15% of a standard deviation","\n")
 cat("---","\n")
 
-cat("So, 17% of", ATSRatio_stdev,"is:",ATSRatio_stdev*0.17,"or 2.22%", "\n")
+cat("So, 15% of", ATSRatio_stdev,"is:",ATSRatio_stdev*0.15,"or 1.97%", "\n")
 cat("---","\n")
 
 cat("In other words, a neighboorhood with a one standard deviation increase in the Log Median Income is subject to a 2.22% increase in their taxable property value","\n")
@@ -708,13 +708,13 @@ covariates <- resdata %>% select(KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_
 
 fitdata <- cbind(fitdata,covariates)
 
-mod <- lmer(atsratio ~ LogMedianIncome + LogMedianLandSize + PctLandSizeDiff_Above + PctLandSizeDiff_Below  + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear, data = fitdata)
+mod <- lmer(atsratio ~ LogMedianIncome + LogMedianLandSize + PctLandSizeDiff_Above + PctLandSizeDiff_Below  + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear + age, data = fitdata)
 
 summary(mod)
 #vcov(mod)
 anova(mod)
 
-ICC = 0.1869 / (0.1869+0.5219)
+ICC = 0.1980/(0.1980+0.5169)
 1-ICC
 vif(mod)
 qqnorm(resid(mod))
@@ -748,20 +748,20 @@ scaled.dat <- fitdata %>%
 fitdata <- as.data.frame(scaled.dat) %>% 
   mutate(GEO_TRACT = fitdata$GEO_TRACT)
 
-covariates <- resdata %>% select(KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear,age)
+covariates <- resdata %>% select(KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear)
 
 
 fitdata <- cbind(fitdata,covariates)
 
 
-mod <- lmer(atsratio ~ Percent_Black + LogMedianIncome + LogMedianLandSize + PctLandSizeDiff_Above + PctLandSizeDiff_Below  + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear, data = fitdata)
+mod <- lmer(atsratio ~ Percent_Black + LogMedianIncome + LogMedianLandSize + PctLandSizeDiff_Above + PctLandSizeDiff_Below  + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear + age, data = fitdata)
 
 summary(mod)
 #vcov(mod)
 anova(mod)
 
 
-ICC = 0.1510/(0.1510 + 0.5266)
+ICC = 0.1585/(0.1585 + 0.5176)
 1 - ICC
 vif(mod)
 qqnorm(resid(mod))
@@ -784,18 +784,18 @@ cat("The standard deviation of assessment ratio is", ATSRatio_stdev,"\n")
 cat("---","\n")
 
 
-cat("In this model we see that Percent Black Population has a coefficient equal to -0.223","\n")
-cat("Which is about 22% of a standard deviation","\n")
+cat("In this model we see that Percent Black Population has a coefficient equal to -0.2344","\n")
+cat("Which is about 23% of a standard deviation","\n")
 cat("---","\n")
 
-cat("So, 22% of", ATSRatio_stdev,"is:",ATSRatio_stdev*0.223,"or 2.92%", "\n")
+cat("So, 23% of", ATSRatio_stdev,"is:",ATSRatio_stdev*0.233,"or 2.92%", "\n")
 cat("---","\n")
 
 cat("In other words, a neighboorhood with a one standard deviation increase in the Percent Black Population is subject to a 2.92% decrease in their taxable property value","\n")
 
 cat("---","\n")
 
-cat("This is the difference between an annual property tax bill of $1000 versus $",1000-(1000*(ATSRatio_stdev*0.223)),"\n")
+cat("This is the difference between an annual property tax bill of $1000 versus $",1000-(1000*(ATSRatio_stdev*0.233)),"\n")
 
 ```
 
@@ -816,13 +816,13 @@ scaled.dat <- fitdata %>%
 fitdata <- as.data.frame(scaled.dat) %>% 
   mutate(GEO_TRACT = fitdata$GEO_TRACT)
 
-covariates <- resdata %>% select(KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear,age)
+covariates <- resdata %>% select(KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear)
 
 
 fitdata <- cbind(fitdata,covariates)
 
 
-mod <- lmer(atsratio ~ Percent_Hispanic + LogMedianIncome + LogMedianLandSize + PctLandSizeDiff_Above + PctLandSizeDiff_Below  + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear, data = fitdata)
+mod <- lmer(atsratio ~ Percent_Hispanic + LogMedianIncome + LogMedianLandSize + PctLandSizeDiff_Above + PctLandSizeDiff_Below  + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear + age,data = fitdata)
 
 summary(mod)
 #vcov(mod)
@@ -865,9 +865,9 @@ covariates <- resdata %>% select(KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,TYPE_
 fitdata <- cbind(fitdata,covariates)
 
 
-mod <- lmer(atsratio ~ Percent_NotHispanic_White + LogMedianIncome + LogMedianLandSize + PctLandSizeDiff_Above + PctLandSizeDiff_Below  + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear, data = fitdata)
+mod <- lmer(atsratio ~ Percent_NotHispanic_White + LogMedianIncome + LogMedianLandSize + PctLandSizeDiff_Above + PctLandSizeDiff_Below  + LogMedianTractSalesPrice  + PctSalePriceDiff_Above + PctSalePriceDiff_Below + (1|GEO_TRACT) + KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear + age, data = fitdata)
 
-ICC = 0.1249 / (0.1249+0.5235)
+ICC = 0.1284/ (0.1284+0.5186)
 
 summary(mod)
 #vcov(mod)
@@ -894,18 +894,18 @@ cat("The standard deviation of assessment ratio is", ATSRatio_stdev,"\n")
 cat("---","\n")
 
 
-cat("In this model we see that Percent White Population has a coefficient equal to 0.3487","\n")
-cat("Which is about 35% of a standard deviation","\n")
+cat("In this model we see that Percent White Population has a coefficient equal to 0.3713","\n")
+cat("Which is about 357% of a standard deviation","\n")
 cat("---","\n")
 
-cat("So, 35% of", ATSRatio_stdev,"is:",ATSRatio_stdev*0.3487,"or 4.57%", "\n")
+cat("So, 37% of", ATSRatio_stdev,"is:",ATSRatio_stdev*0.3713,"or 4.86%", "\n")
 cat("---","\n")
 
 cat("In other words, a neighboorhood with a one standard deviation increase in the Percent White Population is subject to a  4.57% increase in their taxable property value","\n")
 
 cat("---","\n")
 
-cat("This is the difference between an annual property tax bill of $1000 versus $",1000+(1000*(ATSRatio_stdev*0.3487)),"\n")
+cat("This is the difference between an annual property tax bill of $1000 versus $",1000+(1000*(ATSRatio_stdev*0.3713)),"\n")
 
 ```
 
