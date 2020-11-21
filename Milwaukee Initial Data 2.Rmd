@@ -18,34 +18,37 @@ library(tidyverse)
 library(ggplot2)
 library(sf)
 library(lme4)
-library(lmerTest)
+#library(lmerTest)
 library(MuMIn)
-library(corrplot)
-library(Kendall)
+#library(corrplot)
+#library(Kendall)
 library(lubridate)
-library(MASS)
-library(Hmisc)
+#library(MASS)
+#library(Hmisc)
 select <- dplyr::select
-library(glmnet)
-library(car)
-library(EnvStats)
+#library(glmnet)
+#library(car)
+#library(EnvStats)
 ```
 
 Assignment Configuration
 ```{r}
 #setwd("C:/Users/bcris/OneDrive/Desktop")
-setwd("C:/Users/Vinnie/Documents")
-#setwd("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment")
+#setwd("C:/Users/Vinnie/Documents")
 
 
 # Assign Census Data
-popdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Data.csv") %>% select(-c("X"))
-povdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
+#popdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Data.csv") %>% select(-c("X"))
+#povdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
 
 # MAC
-#popdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Data.csv")
+popdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Data.csv")
+
+povdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
+
 
 # Assign Assessment Data
+setwd("/Users/vinniepalazeti/Desktop/Consulting/Data")
 load("res_data_w_geo.dta")
 
 resdata <- data.frame(res_data_w_geo)
@@ -170,13 +173,14 @@ resdata <- filter(resdata, atsratio <= ue)
 #5. How to Account for Sales Chasing
 # Don't Need To
 
-#unique(resdata$BLDTYPE)
+
+# recode Building Type
 
 resdata <- resdata %>% 
   mutate(BLDTYPE = ifelse(BLDTYPE == "C018 - Milwaukee Bungalow",
                           "18 - Milwaukee Bungalow",
                           BLDTYPE))
-
+# recode quality
 resdata <- resdata %>% mutate(QUAL = ifelse(QUAL == "AA- - AA-","A- - A-", QUAL))
 
 resdata <- resdata %>%
@@ -210,6 +214,12 @@ resdata$Cond_Poor <- ifelse(resdata$COND == "PR - Poor",1,0)
 resdata$Cond_VeryGood <- ifelse(resdata$COND == "VG - Very Good",1,0)
 resdata$Cond_VeryPoor <- ifelse(resdata$COND == "VP - Very Poor",1,0)
 
+
+# log Land Size
+
+resdata <- resdata %>% mutate(LANDSIZE = ifelse(LANDSIZEUNITS == "AC - Acres", LANDSIZE*43560,LANDSIZE))
+
+table(resdata$LANDSIZEUNITS)
 
 resdata$LogLandSize <- log(resdata$LANDSIZE)
 
@@ -414,6 +424,154 @@ summary(resdata$PctSalePriceDiff)
 
 #resdata %>% filter(IncomeDecile == 10 & salesdecile == 10) %>% select(SALEPRICE,ASSESSEDVAL)
 ```
+
+Black subpop
+```{r}
+subblack <- resdata %>% filter(blackdecile > 7)
+
+subwhite <- resdata %>% filter(white_nonhispanic_decile > 7)
+
+outofsample <- filter(Initial, atsratio <= le)
+outofsample2 <- filter(Initial, atsratio >= ue)
+outofsample <- rbind(outofsample,outofsample2)
+
+
+subblack;subwhite
+
+li <- subwhite$PID
+li2 <- subblack$PID
+
+subwhite %>% filter(PID %in% li2)
+subblack %>% filter(PID %in% li)
+
+
+ggplot(subblack, aes(SALEDATE)) +
+  geom_histogram(bins=100) +
+  theme(legend.title=element_blank()) + 
+  xlab("Sale Date") + 
+  ylab("Frequency")
+
+
+ggplot(subblack, aes(BEDROOMS)) + 
+  geom_bar()
+
+ggplot(subwhite, aes(BEDROOMS)) + 
+  geom_bar()
+
+ggplot(subblack, aes(atsratio)) +
+  geom_histogram(bins = 200) +
+  xlab("ATS Ratio") + 
+  ylab("Frequency")
+
+
+ggplot(subwhite, aes(atsratio)) +
+  geom_histogram(bins = 200) +
+  xlab("ATS Ratio") + 
+  ylab("Frequency")
+
+
+# do line plots
+
+median(subblack$atsratio)
+mean(subblack$atsratio)
+
+median(subwhite$atsratio)
+mean(subwhite$atsratio)
+
+
+BLDFreqs <- subblack %>% group_by(BLDTYPE) %>% summarise(n = n())
+plotgroup <- subblack %>% left_join(BLDFreqs, by = c("BLDTYPE"))
+
+ggplot(filter(plotgroup, n > 50), aes(BLDTYPE)) +
+  geom_bar() + 
+  xlab("Building Type") + 
+  ylab("Frequency")
+
+BLDFreqs <- subwhite %>% group_by(BLDTYPE) %>% summarise(n = n())
+plotgroup <- subwhite %>% left_join(BLDFreqs, by = c("BLDTYPE"))
+
+ggplot(filter(plotgroup, n > 50), aes(BLDTYPE)) +
+  geom_bar() + 
+  xlab("Building Type") + 
+  ylab("Frequency")
+
+level_order_qual <- c("A","B","C","D","E","NA")
+
+ggplot(subblack, aes(x = factor(QUAL_recode, level = level_order_qual))) +
+  geom_bar() + 
+  xlab("Quality") + 
+  ylab("Frequency")
+
+level_order_qual <- c("A","B","C","D","E","NA")
+
+ggplot(subwhite, aes(x = factor(QUAL_recode, level = level_order_qual))) +
+  geom_bar() + 
+  xlab("Quality") + 
+  ylab("Frequency")
+
+
+
+whitepop <- tapply(subwhite$atsratio,subwhite$white_nonhispanic_decile, summary)
+
+medians <- c()
+deciles <- 1:10
+for (i in 1:10){
+  medians[i] <- as.numeric(whitepop[[i]]['Median']) }
+
+WhiteATS <- data.frame("Medians" = medians,
+                       "Deciles" = deciles)
+
+print(WhiteATS)
+tapply(resdata$atsratio,resdata$white_nonhispanic_decile, summary)
+
+
+boxplot(subwhite$atsratio,subblack$atsratio)
+
+t.test(subwhite$atsratio,subblack$atsratio)
+
+
+# try to do some new models with some more interpretable predictors
+# simpler models, see what comes of it
+# spatial anlaysis
+
+subblack %>% filter(LANDSIZE < 40000)
+subwhite %>% filter(LANDSIZE > 40000)
+
+ggplot(filter(subblack,LANDSIZE < 40000), aes(LANDSIZE)) +
+  geom_histogram(bins = 200) +
+  xlab("") + 
+  ylab("Frequency") + 
+  xlim(0, 40000) + 
+  ylim(0,350)
+
+ggplot(filter(subwhite,LANDSIZE < 40000), aes(LANDSIZE)) +
+  geom_histogram(bins = 200) +
+  xlab("") + 
+  ylab("Frequency") + 
+  xlim(0, 40000) + 
+  ylim(0,350)
+
+min(subwhite$LANDSIZE)
+
+
+subblack %>% filter(LANDSIZE < 100)
+subwhite %>% filter(LANDSIZE < 100)
+
+table(subwhite$LANDSIZEUNITS)
+
+
+subwhite %>% filter(LANDSIZEUNITS == "FF - Front Feet")
+
+
+subwhite %>% group_by(PID) %>% summarize(n = n()) %>% filter(n >1)
+
+subwhite %>% filter(PID == 162761)
+
+# Propensity score matching Houses in 
+```
+
+
+
 
 
 Correlations

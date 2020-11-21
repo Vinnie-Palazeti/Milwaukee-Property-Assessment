@@ -115,6 +115,8 @@ ggplot(resdata, aes(KITCHENS)) +
 
 ggplot(resdata, aes(BEDROOMS)) + 
   geom_bar()
+
+
 ```
 
 
@@ -133,6 +135,7 @@ ggplot(resdata, aes(SALEDATE)) +
   theme(legend.title=element_blank()) + 
   xlab("Sale Date") + 
   ylab("Frequency")
+
 
 
 ggplot(resdata, aes(SALEDATE, fill = factor(atsratiodecile))) +
@@ -204,7 +207,10 @@ Census Data visualizations
 
 Shapefile
 ```{r}
-Mil_County<-st_read("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Shapefiles/Census_Tracts.shp")
+#Mil_County<-st_read("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Shapefiles/Census_Tracts.shp")
+
+Mil_County<-st_read("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Shapefiles/Census_Tracts.shp")
+
 #Makeup
 st_geometry_type(Mil_County)
 #Coordinate Reference System
@@ -400,7 +406,6 @@ tapply(resdata$atsratio,resdata$blackdecile, summary)
     
 Median ATS Ratio by Percent White Population Decile
 ```{r}
-
 whitepop <- tapply(resdata$atsratio,resdata$white_nonhispanic_decile, summary)
 
 medians <- c()
@@ -439,7 +444,6 @@ HispATS <- data.frame("Medians" = medians,
 
 print(HispATS)
 tapply(resdata$atsratio, resdata$hispaniddecile, summary)
-
 ```
 
 
@@ -457,7 +461,6 @@ for (i in 1:10){
 
 IncomeATS <- data.frame("Medians" = medians,
                        "Deciles" = deciles)
-
 
 
 print(IncomeATS)
@@ -916,8 +919,166 @@ cat("This is the difference between an annual property tax bill of $1000 versus 
  
 SubPopulation Analysis 
 
-Focus only on the neighborhoods with concentrated populations
+Black subpop
+```{r}
+subblack <- resdata %>% filter(blackdecile > 7)
 
+subwhite <- resdata %>% filter(white_nonhispanic_decile > 7)
+
+outofsample <- filter(Initial, atsratio <= le)
+outofsample2 <- filter(Initial, atsratio >= ue)
+outofsample <- rbind(outofsample,outofsample2)
+
+
+subblack;subwhite
+
+li <- subwhite$PID
+li2 <- subblack$PID
+
+subwhite %>% filter(PID %in% li2)
+subblack %>% filter(PID %in% li)
+
+
+ggplot(subblack, aes(SALEDATE)) +
+  geom_histogram(bins=100) +
+  theme(legend.title=element_blank()) + 
+  xlab("Sale Date") + 
+  ylab("Frequency")
+
+
+ggplot(subblack, aes(BEDROOMS)) + 
+  geom_bar()
+
+ggplot(subwhite, aes(BEDROOMS)) + 
+  geom_bar()
+
+ggplot(subblack, aes(atsratio)) +
+  geom_histogram(bins = 200) +
+  xlab("ATS Ratio") + 
+  ylab("Frequency")
+
+
+ggplot(subwhite, aes(atsratio)) +
+  geom_histogram(bins = 200) +
+  xlab("ATS Ratio") + 
+  ylab("Frequency")
+
+
+# do line plots
+
+median(subblack$atsratio)
+mean(subblack$atsratio)
+
+median(subwhite$atsratio)
+mean(subwhite$atsratio)
+
+
+BLDFreqs <- subblack %>% group_by(BLDTYPE) %>% summarise(n = n())
+plotgroup <- subblack %>% left_join(BLDFreqs, by = c("BLDTYPE"))
+
+ggplot(filter(plotgroup, n > 50), aes(BLDTYPE)) +
+  geom_bar() + 
+  xlab("Building Type") + 
+  ylab("Frequency")
+
+BLDFreqs <- subwhite %>% group_by(BLDTYPE) %>% summarise(n = n())
+plotgroup <- subwhite %>% left_join(BLDFreqs, by = c("BLDTYPE"))
+
+ggplot(filter(plotgroup, n > 50), aes(BLDTYPE)) +
+  geom_bar() + 
+  xlab("Building Type") + 
+  ylab("Frequency")
+
+level_order_qual <- c("A","B","C","D","E","NA")
+
+ggplot(subblack, aes(x = factor(QUAL_recode, level = level_order_qual))) +
+  geom_bar() + 
+  xlab("Quality") + 
+  ylab("Frequency")
+
+level_order_qual <- c("A","B","C","D","E","NA")
+
+ggplot(subwhite, aes(x = factor(QUAL_recode, level = level_order_qual))) +
+  geom_bar() + 
+  xlab("Quality") + 
+  ylab("Frequency")
+
+
+
+whitepop <- tapply(subwhite$atsratio,subwhite$white_nonhispanic_decile, summary)
+
+medians <- c()
+deciles <- 1:10
+for (i in 1:10){
+  medians[i] <- as.numeric(whitepop[[i]]['Median']) }
+
+WhiteATS <- data.frame("Medians" = medians,
+                       "Deciles" = deciles)
+
+print(WhiteATS)
+tapply(resdata$atsratio,resdata$white_nonhispanic_decile, summary)
+
+
+boxplot(subwhite$atsratio,subblack$atsratio)
+
+t.test(subwhite$atsratio,subblack$atsratio)
+
+
+# try to do some new models with some more interpretable predictors
+# simpler models, see what comes of it
+# spatial anlaysis
+
+subblack %>% filter(LANDSIZE < 40000)
+subwhite %>% filter(LANDSIZE > 40000)
+
+ggplot(filter(subblack,LANDSIZE < 40000), aes(LANDSIZE)) +
+  geom_histogram(bins = 200) +
+  xlab("") + 
+  ylab("Frequency") + 
+  xlim(0, 40000) + 
+  ylim(0,350)
+
+ggplot(filter(subwhite,LANDSIZE < 40000), aes(LANDSIZE)) +
+  geom_histogram(bins = 200) +
+  xlab("") + 
+  ylab("Frequency") + 
+  xlim(0, 40000) + 
+  ylim(0,350)
+
+min(subwhite$LANDSIZE)
+
+
+subblack %>% filter(LANDSIZE < 100)
+subwhite %>% filter(LANDSIZE < 100)
+
+table(subwhite$LANDSIZEUNITS)
+
+
+subwhite %>% filter(LANDSIZEUNITS == "FF - Front Feet")
+
+
+subwhite %>% group_by(PID) %>% summarize(n = n()) %>% filter(n >1)
+
+subwhite %>% filter(PID == 162761)
+
+# Propensity score matching Houses in 
+```
+
+
+# Or use the chisq.test() function
+res = chisq.test()
+res
+
+table(df_death)
+
+age <- matrix(c(2655,716,2347,1024),ncol=2,byrow=TRUE)
+colnames(age) <- c("Over 24","17-24")
+rownames(age) <- c("Sheridan","Control")
+age <- as.table(age)
+age
+
+res = chisq.test(age)
+res
  
  
  
