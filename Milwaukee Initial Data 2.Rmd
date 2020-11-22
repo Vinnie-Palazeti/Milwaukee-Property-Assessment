@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 Library
-#install.packages("Kendall")
+#install.packages("gglasso")
 ```{r}
 library(tidyverse)
 library(ggplot2)
@@ -26,9 +26,10 @@ library(lubridate)
 library(MASS)
 #library(Hmisc)
 select <- dplyr::select
-#library(glmnet)
+library(glmnet)
 library(car)
 #library(EnvStats)
+library(gglasso)
 ```
 
 Assignment Configuration
@@ -81,7 +82,18 @@ resdata <- data.frame(res_data_w_geo)
 
 # even though no longer holding things constant, that which we have tossed is colinear with what is currently in the model
 
+# YOU SHOULDNT USE SALE PRICE IT IS PART OF THE ASSESSMENT RATIO
 
+# why not use the ASSESSMENT VALUE as the dependent ratio & just control for the sale price
+
+####### TO DO ##########
+
+Set up New Models with structure
+# just use sale price as a covariate to control for & infer on the rest of the variables
+
+Use Lasso to determine best model & infer coefficients
+
+Do propensity score matching on Majority black observations, then use logistic regression on those observations with 1 stdeviation below the mean value
 
 
 
@@ -288,6 +300,9 @@ resdata <- resdata %>%
         # Log Median Income
         LogMedianIncome = log(MEDIAN.INCOME),
         
+        # Log Assessed Val
+        LogAssessedVal = log(ASSESSEDVAL),
+        
         # Deviation from Sales Price
         PriceDeviation = (SALEPRICE - MedianTractSalesPrice),
         PctSalePriceDiff = ((SALEPRICE-MedianTractSalesPrice)/MedianTractSalesPrice)*100,
@@ -374,6 +389,25 @@ resdata$TotalPOPIncome_PovertyRateDecile <- ntile(resdata$Percent_TotalPOPIncome
 resdata$POPIncome_PovertyRatioDecile <- ntile(resdata$POPBelowPovIncomeRatio,10)
 ```
 
+Clean
+```{r}
+resdata$KITCHEN_FAC <- factor(resdata$KITCHEN_RTG)
+resdata$COND_FAC <- factor(resdata$COND)
+resdata$QUAL_FAC <- factor(resdata$QUAL_recode)
+resdata$BATH_FAC <- factor(resdata$FULLBATH_RTG)
+resdata$TYPE_FAC <- factor(resdata$BLDTYPE_recode)
+resdata$PRIM_WALL <- factor(resdata$PRIM_WALL)
+resdata$salemonth <- format(as.Date(resdata$SALEDATE), "%m")
+resdata$saleyear <- format(as.Date(resdata$SALEDATE), "%Y")
+resdata$age <- 2019 - as.numeric(resdata$YEARBLT)
+
+resdata <- resdata %>% ungroup()
+
+```
+
+
+
+
 ## Tables
 ```{r}
 # Median Neighborhood Price
@@ -423,6 +457,7 @@ tapply(resdata$atsratio, resdata$MedSalesDecile, summary)
 ```
 
 
+EXTRA WORK
 
 
 ```{r}
