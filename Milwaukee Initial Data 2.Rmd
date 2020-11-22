@@ -23,11 +23,11 @@ library(MuMIn)
 library(corrplot)
 library(Kendall)
 library(lubridate)
-#library(MASS)
+library(MASS)
 #library(Hmisc)
 select <- dplyr::select
 #library(glmnet)
-#library(car)
+library(car)
 #library(EnvStats)
 ```
 
@@ -76,6 +76,10 @@ resdata <- data.frame(res_data_w_geo)
 
 # spatial anlaysis
 # what other kinds of spatial analysis are there?
+
+# The lasso
+
+# even though no longer holding things constant, that which we have tossed is colinear with what is currently in the model
 
 
 
@@ -272,9 +276,7 @@ info <- resdata %>%
             LogMedianLandSize = log(MedianLandSize),
             MedianATSRatio = median(atsratio))
 
-resdata <- resdata %>% left_join(info, by="GEO_TRACT") %>%
-  mutate(PriceDeviation = (SALEPRICE - MedianTractSalesPrice),
-         LandSizeDeviation = (LANDSIZE - MedianLandSize))
+resdata <- resdata %>% left_join(info, by="GEO_TRACT")
 
 
 resdata <- resdata %>% 
@@ -286,14 +288,14 @@ resdata <- resdata %>%
         # Log Median Income
         LogMedianIncome = log(MEDIAN.INCOME),
         
-        
         # Deviation from Sales Price
-        
+        PriceDeviation = (SALEPRICE - MedianTractSalesPrice),
         PctSalePriceDiff = ((SALEPRICE-MedianTractSalesPrice)/MedianTractSalesPrice)*100,
         PctSalePriceDiff_Above = ifelse(PctSalePriceDiff > 0, PctSalePriceDiff,0),
         PctSalePriceDiff_Below = ifelse(PctSalePriceDiff < 0, PctSalePriceDiff,0),
         
         # Deviation From Land Size
+        LandSizeDeviation = (LANDSIZE - MedianLandSize),
         PctLandSizeDiff = ((LANDSIZE-MedianLandSize)/MedianLandSize)*100,
         PctLandSizeDiff_Above = ifelse(PctLandSizeDiff > 0, PctLandSizeDiff,0),
         PctLandSizeDiff_Below = ifelse(PctLandSizeDiff < 0, PctLandSizeDiff,0),
@@ -326,7 +328,7 @@ resdata <- resdata %>%
 
 ## Variables
 ```{r}
-# Sale Price Decile & Quintiles
+# Sale Price
 resdata$salesdecile <- ntile(resdata$SALEPRICE, 10) 
 resdata$salesquintile <- ntile(resdata$SALEPRICE, 5)
 
@@ -351,11 +353,11 @@ resdata$white_nonhispanic_decile <- ntile(resdata$Percent_NotHispanic_White,10)
 resdata$hispaniddecile <- ntile(resdata$Percent_Hispanic,10)
 
 
-# Percent Renter Quartiles
+# Percent Renter 
 resdata$renterquintile <- ntile(resdata$Percent_Renter,5)
 resdata$renterdecile <- ntile(resdata$Percent_Renter,10)
 
-# Income Deciles
+# Income 
 resdata$IncomeDecile <- ntile(resdata$MEDIAN.INCOME,10)
 
 # Black Income Poverty Rate
