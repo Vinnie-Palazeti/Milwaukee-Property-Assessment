@@ -1291,7 +1291,6 @@ fitdata <- resdata %>%
          LogMedianIncome,age,
          GEO_TRACT)
  
-
 scaled.dat <- fitdata %>% 
   select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
 
@@ -1324,12 +1323,73 @@ vif(mod)
 # So what is the interpretation of this? Should I include both in the model?
 
 
+ LASSO MODELS
  
-# Need to do Grouped LASSO
+ The only useful information from this is that Number of Kitchens ought to be removed.
+ 
+ With ATS Ratio there are different results.
+ 
+
+```{r}
+fitdata <- resdata %>% 
+  select(LogAssessedVal,
+         Percent_Black, Percent_Hispanic,
+         LogLandSize, LogSalesPrice,LogMedianIncome,age) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+fitdata <- cbind(fitdata,covariates)
+  
+X <- fitdata %>% select(-c(LogAssessedVal))
+X <- as.matrix(X)
+
+Y <- fitdata %>% select(LogAssessedVal)
+Y <- as.matrix(Y)
+
+group <- c(1:6,rep(7,6),8,rep(9,5),10,rep(11,6),rep(12,4),13,rep(14,7))
 
 
-# In order to do Grouped LASSO I need to use the dummy variables for the categorical groups
+cv <-cv.gglasso(x = X, y = Y, group = group, loss = "ls",
+           pred.loss = "L1", nfolds=5)
 
+pre = coef(cv$gglasso.fit, s = cv$lambda.1se)
+pre
+```
+
+
+Assessed Value with all races
+```{r}
+fitdata <- resdata %>% 
+  select(LogAssessedVal,
+         Percent_Black, Percent_Hispanic, Percent_NotHispanic_White,
+         LogLandSize, LogSalesPrice,LogMedianIncome,age) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+fitdata <- cbind(fitdata,covariates)
+  
+X <- fitdata %>% select(-c(LogAssessedVal))
+X <- as.matrix(X)
+
+Y <- fitdata %>% select(LogAssessedVal)
+Y <- as.matrix(Y)
+
+group <- c(1:7,rep(8,6),9,rep(10,5),11,rep(12,6),rep(13,4),14,rep(15,7))
+
+
+cv <-cv.gglasso(x = X, y = Y, group = group, loss = "ls",
+           pred.loss = "L1", nfolds=5)
+
+pre = coef(cv$gglasso.fit, s = cv$lambda.1se)
+pre
+```
+
+
+Assessed Value
 
 ```{r}
 fitdata <- resdata %>% 
@@ -1355,14 +1415,171 @@ group <- c(1:9,rep(10,6),11,rep(12,5),13,rep(14,6),rep(15,4),16,rep(17,7))
 
 
 cv <-cv.gglasso(x = X, y = Y, group = group, loss = "ls",
-           pred.loss = "L1",lambda.factor = 0.005, nfolds=5)
+           pred.loss = "L1", nfolds=5)
+
+pre = coef(cv$gglasso.fit, s = cv$lambda.1se)
+pre
+```
+
+ATS Ratio, all races, simple predictors
+
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_Black, Percent_Hispanic, Percent_NotHispanic_White,
+         LogLandSize,LogMedianIncome,age) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+fitdata <- cbind(fitdata,covariates)
+  
+X <- fitdata %>% select(-c(atsratio))
+X <- as.matrix(X)
+
+Y <- fitdata %>% select(atsratio)
+Y <- as.matrix(Y)
+
+group <- c(1:6,rep(7,6),8,rep(9,5),10,rep(11,6),rep(12,4),13,rep(14,7))
+
+
+cv <-cv.gglasso(x = X, y = Y, group = group, loss = "ls",
+           pred.loss = "L1", nfolds=5)
+
+pre = coef(cv$gglasso.fit, s = cv$lambda.1se)
+pre
+```
+
+ATS Ratio with simple predictors
+
+```{r}
+fitdata <- resdata %>% 
+  select(atsratio,
+         Percent_Black, Percent_Hispanic,
+         LogLandSize,LogMedianIncome,age) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select(Kitchen_Excellent, Kitchen_Fair, Kitchen_Good, Kitchen_Poor, Kitchen_VeryGood, Kitchen_VeryPoor, KITCHENS,FullBath_Excellent,FullBath_Fair,FullBath_Good,FullBath_Poor,FullBath_VeryGood,FULLBATHS, Cond_VeryPoor,Cond_Excellent,Cond_Fair,Cond_Good,Cond_Poor,Cond_VeryGood, Qual_A,Qual_B,Qual_D,Qual_E, BEDROOMS,Cape_Cod,Milwaukee_Bungalow,Res_OS_A,Colonial,Duplex,Res_OS_2sty,Other)
+
+fitdata <- cbind(fitdata,covariates)
+  
+X <- fitdata %>% select(-c(atsratio))
+X <- as.matrix(X)
+
+Y <- fitdata %>% select(atsratio)
+Y <- as.matrix(Y)
+
+group <- c(1:5,rep(6,6),7,rep(8,5),9,rep(10,6),rep(11,4),12,rep(13,7))
+
+
+cv <-cv.gglasso(x = X, y = Y, group = group, loss = "ls",
+           pred.loss = "L1", nfolds=5)
 
 pre = coef(cv$gglasso.fit, s = cv$lambda.1se)
 pre
 ```
 
 
-
-
 SubPOP
+
+Propensity Score Matching
+
+Use Majority Black Neighborhoods as the matching criteria --> it is a 0 or 1
+
+Once matched observations are found, then do regression
+Ideas for regression
+    - ATS Ratio
+    - Assessed Value
+    
+    - One STDEVIATION away from mean: Logistic Regression
+    
+    
+I do not think we want assessment value in there
+
+What we want are similar houses in
+
+
+
+              # Observation Level Value Vars
+              LogLandSize + LogSalesPrice + 
+              
+              # Track Level Vars
+              LogMedianIncome  + LogMedianTractSalesPrice + LogMedianLandSize + 
+              
+              # Observation Level Characteristic Vars
+              
+    
+```{r}
+
+Blackobs <- resdata %>% filter(Majority_Black == 1) %>%
+  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW,
+         Percent_Black, Percent_Hispanic,
+         LogLandSize, LogSalesPrice,
+         LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
+         age,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,
+         TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>% mutate(Group = 1)
+
+Otherobs <- resdata %>% filter(Majority_Black == 0) %>%
+  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW,
+         Percent_Black, Percent_Hispanic,
+         LogLandSize, LogSalesPrice,
+         LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
+         age,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,
+         TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>%
+  mutate(Group = 0)
  
+
+fitdata <- rbind(Blackobs,Otherobs)
+
+set.seed(1234)
+match.it <- matchit(Group ~
+              LogLandSize + 
+              age + KITCHENS + FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
+              PRIM_WALL + salemonth + saleyear, 
+              data = fitdata, 
+              method="nearest",
+              ratio=1)
+
+df.match <- match.data(match.it, distance= "prop.score")
+
+
+plot(match.it, type="jitter")
+plot(density(df.match$prop.score[df.match$Group==1]))
+plot(density(df.match$prop.score[df.match$Group==0]))
+
+
+summary(match.it)
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Group + LogSalesPrice + prop.score, data = df.match, family = "binomial")
+summary(mod1)
+
+exp(1.5196)
+exp(-0.54747)
+
+
+sumdat <- summary(match.it)
+
+mean(df.match[df.match$Group == 1,]$LogAssessedVal)
+mean(df.match[df.match$Group == 0,]$LogAssessedVal)
+
+
+mean(exp(df.match[df.match$Group == 1,]$LogAssessedVal))
+mean(exp(df.match[df.match$Group == 0,]$LogAssessedVal))
+
+
+
+mean(exp(df.match[df.match$Group == 1,]$LogSalesPrice))
+mean(exp(df.match[df.match$Group == 0,]$LogSalesPrice))
+
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black + LogSalesPrice , data = resdata, family = "binomial")
+summary(mod1)
+
+exp(1.36965)
+exp(0.90432)
+
+
+```
+

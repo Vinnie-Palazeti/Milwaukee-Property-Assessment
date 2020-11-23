@@ -12,7 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 Library
-#install.packages("gglasso")
+#install.packages("StepAIC")
 ```{r}
 library(tidyverse)
 library(ggplot2)
@@ -25,11 +25,15 @@ library(Kendall)
 library(lubridate)
 library(MASS)
 #library(Hmisc)
-select <- dplyr::select
 library(glmnet)
 library(car)
 #library(EnvStats)
 library(gglasso)
+library(MatchIt)
+
+select <- dplyr::select
+year <- lubridate::year
+month <- lubridate::month
 ```
 
 Assignment Configuration
@@ -88,6 +92,9 @@ resdata <- data.frame(res_data_w_geo)
 
 ####### TO DO ##########
 
+
+Build Tract Only Models
+
 Set up New Models with structure
 # just use sale price as a covariate to control for & infer on the rest of the variables
 
@@ -95,7 +102,7 @@ Use Lasso to determine best model & infer coefficients
 
 Do propensity score matching on Majority black observations, then use logistic regression on those observations with 1 stdeviation below the mean value
 
-
+Format & Interpret everything Monday Morning
 
 Cleaning
 ```{r}
@@ -286,16 +293,28 @@ info <- resdata %>%
             LogMedianTractSalesPrice = log(MedianTractSalesPrice),
             MedianLandSize = median(LANDSIZE),
             LogMedianLandSize = log(MedianLandSize),
-            MedianATSRatio = median(atsratio))
+            MedianTractATSRatio = median(atsratio))
 
 resdata <- resdata %>% left_join(info, by="GEO_TRACT")
+
+resdata$Meanatsratio <- mean(resdata$atsratio)
+resdata$Medianatsratio <- median(resdata$atsratio)
+resdata$StandardDev_atsratio <- sd(resdata$atsratio)
 
 
 resdata <- resdata %>% 
   mutate(
     
+    
+    
         # Log Sales Price
         LogSalesPrice = log(SALEPRICE),
+        
+        ATSDeviation = (atsratio - Meanatsratio),
+
+        ATSDev_Indicator = ifelse(abs(ATSDeviation) > StandardDev_atsratio, 1,0 ),
+        
+        ATSDev_Indicator_LOW = ifelse((ATSDeviation < 0) & (abs(ATSDeviation) > StandardDev_atsratio), 1,0 ),
         
         # Log Median Income
         LogMedianIncome = log(MEDIAN.INCOME),
@@ -334,6 +353,7 @@ resdata <- resdata %>%
         Percent_BlackIncomeBelowPovRate = BLACK.POP.INCOME.BELOW.POV.RATE/TOTAL.POP,
         Percent_WhiteIncomeBelowPovRate = WHITE.POP.INCOME.BELOW.POV.RATE/TOTAL.POP
         )
+
 
 ```
 
@@ -461,16 +481,6 @@ EXTRA WORK
 
 
 ```{r}
-Maj_Black <- resdata %>%
-  filter(Majority_Black == 1)
-mean(Maj_Black$atsratio)
-
-
-Maj_White <- resdata %>%
-  filter(Majority_White == 1)
-mean(Maj_White$atsratio)
-
-
 
 # only a 2% difference in Black & White Neighborhoods
 (mean(Maj_White$atsratio)-mean(Maj_Black$atsratio))/mean(Maj_White$atsratio)*100
@@ -744,8 +754,6 @@ anova(mod5)
 
 r.squaredGLMM(mod5)
 ```
-
-#blquant=cut(resdata$Percent_Black, breaks = quantile(resdata$Percent_Black, p=seq(0,1,length.out = 8)), include.lowest = T)
 
 Regression attempts
 ```{r}
