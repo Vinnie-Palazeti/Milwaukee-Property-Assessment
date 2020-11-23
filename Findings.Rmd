@@ -959,6 +959,34 @@ ggplot(data.frame(eta=predict(mod,type="link"),pearson=residuals(mod,type="pears
  
 We find significant results. The model diagnostics look good. Residuals are constant and normally distributed
 
+```{r}
+ATSRatio_stdev <- sd(resdata$atsratio)
+
+cat("The standard deviation of assessment ratio is", ATSRatio_stdev,"\n")
+cat("---","\n")
+
+cat("In the first model we see that Percent Black has a coefficient equal to -0.1218","\n")
+cat("Which is about 12% of a standard deviation","\n")
+cat("---","\n")
+
+cat("So, 12% of", ATSRatio_stdev,"is:",ATSRatio_stdev*0.1218,"or 1.61%", "\n")
+cat("---","\n")
+
+cat("In other words, a neighboorhood with a one standard deviation increase in the Percent Black Population is subject to a 1.61% decrease in their taxable property value","\n")
+
+cat("---","\n")
+
+cat("This is the difference between an annual property tax bill of $1000 versus $",1000 -(1000*(ATSRatio_stdev*0.1218)),"\n")
+
+"A coefficient of 0.1218 indicates that a one standard deviation increase in percent black is associated with a 0.1218 standard devation increase in the assessment ratio. This is 12% of a standard deviation. The standard deviation of the assessment ratio is about 0.13, so 12% of that is 0.016 or 1.16%. A neighborhood with a one standard deviation increase in the percent of black people is subject to about a 1.16% increase in their taxable property values"
+
+
+
+```
+
+
+
+
 
 With more specific house difference characteristics
 SPECIFIC MIXED EFFECT MODEL
@@ -1002,6 +1030,7 @@ ggplot(data.frame(eta=predict(mod,type="link"),pearson=residuals(mod,type="pears
   xlab("Fitted Values") + 
   ylab("Standardized Residuals") +
   theme_bw()
+
 ```
  
 We control for more specific housing characteristics, we see the coefficient for Percent Black has increased dramatically.
@@ -1030,6 +1059,9 @@ cat("In other words, a neighboorhood with a one standard deviation increase in t
 cat("---","\n")
 
 cat("This is the difference between an annual property tax bill of $1000 versus $",1000 -(1000*(ATSRatio_stdev*0.4642)),"\n")
+
+"A coefficient of -0.4642 indicates that a one standard deviation increase in percent black is associated with a 0.4642 standard deviation decrease in the assessment ratio. This is 46% of a standard deviation. The standard deviation of the assessment ratio is about 0.13, so 46% of that is 0.0614 or 6.14%. A neighborhood with a one standard deviation increase in the percent of black people is subject to about a 6.14% decrease in their taxable property values"
+
 
 ```
 
@@ -1087,7 +1119,30 @@ Inference on Log Sales Price might be really interesting here
 
 We also still see a negative impact of percent black population
 
+```{r}
+AssesVal <- sd(resdata$LogAssessedVal)
 
+cat("The standard deviation of assessment ratio is", AssesVal,"\n")
+cat("---","\n")
+
+-0.4642
+cat("In the first model we see that Percent Black has a coefficient equal to -0.150","\n")
+cat("Which is about 15% of a standard deviation","\n")
+cat("---","\n")
+
+cat("So, 15% of", AssesVal,"is:",AssesVal*0.150,"or 7.30%", "\n")
+cat("---","\n")
+
+cat("In other words, a neighboorhood with a one standard deviation increase in the Percent Black Population is subject to a 7.30%% decrease in their taxable property value","\n")
+
+cat("---","\n")
+
+#cat("This is the difference between an annual property tax bill of $1000 versus $",1000 -(1000*(AssesVal*0.150)),"\n")
+
+"A coefficient of -0.150 indicates that a one standard deviation increase in percent black is associated with a 0.150 standard deviation decrease in the Log Assessment Value. This is 15% of a standard deviation. The standard deviation of the assessment ratio is about 0.487, so 15% of that is 0.0731 or 7.31%. A neighborhood with a one standard deviation increase in the percent of black people is subject to about a 7.31% decrease in their Log Assessment Value"
+
+
+```
 Model with more precise housing characteristics
 
 ```{r}
@@ -1136,24 +1191,27 @@ ggplot(data.frame(eta=predict(mod,type="link"),pearson=residuals(mod,type="pears
 
 
 ```{r}
-ATSRatio_stdev <- sd(resdata$atsratio)
+AssesVal <- sd(resdata$LogAssessedVal)
 
-cat("The standard deviation of assessment ratio is", ATSRatio_stdev,"\n")
+cat("The standard deviation of assessment ratio is", AssesVal,"\n")
 cat("---","\n")
 
--0.4642
+
 cat("In the first model we see that Percent Black has a coefficient equal to -0.1518","\n")
-cat("Which is about 15% of a standard deviation","\n")
+cat("Which is about 15.2% of a standard deviation","\n")
 cat("---","\n")
 
-cat("So, 15% of", ATSRatio_stdev,"is:",ATSRatio_stdev*0.1518,"or 2.00%", "\n")
+cat("So, 15.2% of", AssesVal,"is:",AssesVal*0.1518,"or 7.4%", "\n")
 cat("---","\n")
 
-cat("In other words, a neighboorhood with a one standard deviation increase in the Percent Black Population is subject to a 2% decrease in their taxable property value","\n")
+cat("In other words, a neighboorhood with a one standard deviation increase in the Percent Black Population is subject to a 7.4%% decrease in their taxable property value","\n")
 
 cat("---","\n")
 
-cat("This is the difference between an annual property tax bill of $1000 versus $",1000 -(1000*(ATSRatio_stdev*0.1518)),"\n")
+#cat("This is the difference between an annual property tax bill of $1000 versus $",1000 -(1000*(AssesVal*0.150)),"\n")
+
+"A coefficient of -0.1518 indicates that a one standard deviation increase in percent black is associated with a 0.1518 standard deviation decrease in the Log Assessment Value. This is 15.2% of a standard deviation. The standard deviation of the assessment ratio is about 0.487, so 15.2% of that is 0.0739 or 7.4%. A neighborhood with a one standard deviation increase in the percent of black people is subject to about a 7.4% decrease in their Log Assessment Value"
+
 
 ```
 
@@ -1357,95 +1415,128 @@ Report Results in this way
       - Added Covariates
       - Propensity Matched using housing characteristics
   
+
+Initial Data Analysis for Logistic Regressions
+```{r}
+ggplot(resdata, aes(atsratio)) +
+  geom_histogram(bins = 200)+ 
+  xlim(0.5,1.4) + 
+  ylim(0,115)+
+  xlab("ATS Ratio") +
+  ylab("Frequency") + 
+  ggtitle("Distribution of ATS Ratio")
+
+ggplot(filter(resdata, Majority_Black ==1), aes(atsratio)) +
+  geom_histogram(bins = 200)+ 
+  xlim(0.5,1.4) + 
+  ylim(0,80)+
+  xlab("ATS Ratio") +
+  ylab("Frequency") + 
+  ggtitle("Distribution of ATS Ratio for Majority Black Neighborhoods")
+
+
+ggplot(filter(resdata, Majority_Black ==1), aes(atsratio)) +
+  geom_histogram(bins = 200)+ 
+  xlim(0.5,1.4) + 
+  ylim(0,35)+
+  xlab("ATS Ratio") +
+  ylab("Frequency") + 
+  ggtitle("Scaled Down: Distribution of ATS Ratio for Majority Black Neighborhoods")
+
+ggplot(filter(resdata, Majority_Black ==0), aes(atsratio)) +
+  geom_histogram(bins = 200)+ 
+  xlim(0.5,1.4) + 
+  ylim(0,80)+
+  xlab("ATS Ratio") +
+  ylab("Frequency") + 
+  ggtitle("Distribution of ATS Ratio for Majority Non-Black Neighborhoods")
+
+
+ggplot(filter(resdata, Majority_White ==1), aes(atsratio)) +
+  geom_histogram(bins = 200)+ 
+  xlim(0.5,1.4) + 
+  ylim(0,80)+
+  xlab("ATS Ratio") +
+  ylab("Frequency")+ 
+  ggtitle("Distribution of ATS Ratio for Majority White Neighborhoods")
+```
   
-Black vs All Other
+Unmatched Logistic Regressions
 ```{r}
 
-Blackobs <- resdata %>% filter(Majority_Black == 1) %>%
-  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW,SALEPRICE,
-         Percent_Black, Percent_Hispanic,
-         LogLandSize, LogSalesPrice,
-         LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
-         age,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,
-         TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>% 
-  mutate(Group = 1)
-
-Otherobs <- resdata %>% filter(Majority_Black == 0) %>%
-  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW,SALEPRICE,
-         Percent_Black, Percent_Hispanic,
-         LogLandSize, LogSalesPrice,
-         LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
-         age,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,
-         TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>%
-  mutate(Group = 0)
- 
-
-fitdata <- rbind(Blackobs,Otherobs)
-
-set.seed(1234)
-match.it <- matchit(Group ~
-              LogLandSize + 
-              age + KITCHENS + FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
-              PRIM_WALL + salemonth + saleyear, 
-              data = fitdata, 
-              method="nearest",
-              ratio=1)
-
-df.match <- match.data(match.it, distance= "prop.score")
-
-
-plot(match.it, type="jitter")
-plot(density(df.match$prop.score[df.match$Group==1]))
-plot(density(df.match$prop.score[df.match$Group==0]))
-
-
-summary(match.it)
-
-mod1 <- glm(ATSDev_Indicator_LOW ~ Group + LogSalesPrice + prop.score, data = df.match, family = "binomial")
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black  , data = resdata, family = "binomial")
 summary(mod1)
 
-exp(1.5196)
-exp(-0.54747)
+exp(0.90432)
 
-mod1 <- glm(ATSDev_Indicator_LOW ~ Group + SALEPRICE , data = df.match, family = "binomial")
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black + LogSalesPrice , data = resdata, family = "binomial")
 summary(mod1)
-exp(1.462)
-
-sumdat <- summary(match.it)
-
-mean(df.match[df.match$Group == 1,]$LogAssessedVal)
-mean(df.match[df.match$Group == 0,]$LogAssessedVal)
-
-
-mean(exp(df.match[df.match$Group == 1,]$LogAssessedVal))
-mean(exp(df.match[df.match$Group == 0,]$LogAssessedVal))
-
-
-
-mean(exp(df.match[df.match$Group == 1,]$LogSalesPrice))
-mean(exp(df.match[df.match$Group == 0,]$LogSalesPrice))
-
-
-mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_White + LogSalesPrice , data = resdata, family = "binomial")
-summary(mod1)
-
 exp(1.36965)
-exp(-1.44086)
 
-mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black + SALEPRICE + 
-              PctLandSizeDiff_Above + PctLandSizeDiff_Below + 
-              age +
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black + LogSalesPrice + age +
               KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
               PRIM_WALL + salemonth + saleyear, data = resdata, family = "binomial")
 summary(mod1)
-
-exp(1.481)
-
+exp(1.788)
 ```
+```{r}
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_Black  , data = resdata, family = "binomial")
+summary(mod1)
+exp(0.3811)
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_Black + LogSalesPrice , data = resdata, family = "binomial")
+summary(mod1)
+exp(-0.81633)
+
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_Black + LogSalesPrice + age +
+              KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
+              PRIM_WALL + salemonth + saleyear, data = resdata, family = "binomial")
+summary(mod1)
+exp(-1.045)
+```
+  
+```{r}
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_White  , data = resdata, family = "binomial")
+summary(mod1)
+exp(-0.96450)
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_White + LogSalesPrice , data = resdata, family = "binomial")
+summary(mod1)
+exp(-1.44086)
+
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_White + LogSalesPrice + age +
+              KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
+              PRIM_WALL + salemonth + saleyear, data = resdata, family = "binomial")
+summary(mod1)
+exp(-1.644)
+```
+```{r}
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_White  , data = resdata, family = "binomial")
+summary(mod1)
+exp(-0.24887)
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_White + LogSalesPrice , data = resdata, family = "binomial")
+summary(mod1)
+exp(0.9976)
+
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_White + LogSalesPrice + age +
+              KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
+              PRIM_WALL + salemonth + saleyear, data = resdata, family = "binomial")
+summary(mod1)
+exp(1.133)
+```
+  
 
 ```{r}
 Blackobs <- resdata %>% filter(Majority_Black == 1) %>%
-  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW, SALEPRICE,
+  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW, ATSDev_Indicator_HIGH, SALEPRICE,
          Percent_Black, Percent_Hispanic,
          LogLandSize, LogSalesPrice,
          LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
@@ -1453,7 +1544,7 @@ Blackobs <- resdata %>% filter(Majority_Black == 1) %>%
          TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>% mutate(Group = 1)
 
 Otherobs <- resdata %>% filter(Majority_White == 1) %>%
-  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW, SALEPRICE,
+  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW, ATSDev_Indicator_HIGH, SALEPRICE,
          Percent_Black, Percent_Hispanic,
          LogLandSize, LogSalesPrice,
          LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
@@ -1480,15 +1571,16 @@ plot(match.it, type="jitter")
 plot(density(df.match$prop.score[df.match$Group==1]))
 plot(density(df.match$prop.score[df.match$Group==0]))
 
-mod1 <- glm(ATSDev_Indicator_LOW ~ Group + SALEPRICE, data = df.match, family = "binomial")
+mod1 <- glm(ATSDev_Indicator_LOW ~ Group + LogSalesPrice, data = df.match, family = "binomial")
+
 summary(mod1)
+exp(1.7698)
 
-exp(1.1359)
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Group + LogSalesPrice, data = df.match, family = "binomial")
 
-mean(df.match$LogSalesPrice)
-exp(11.71623) - exp(11.71623 + 1) 
+summary(mod1)
+exp(-0.9927)
 
 
-exp(1.816)
 ```
 
