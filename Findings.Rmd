@@ -1488,41 +1488,36 @@ Propensity Score Matching
 
 Use Majority Black Neighborhoods as the matching criteria --> it is a 0 or 1
 
+
+
 Once matched observations are found, then do regression
-Ideas for regression
-    - ATS Ratio
-    - Assessed Value
     
     - One STDEVIATION away from mean: Logistic Regression
     
     
-I do not think we want assessment value in there
+Do it with all data & all covariates  
 
-What we want are similar houses in
+Report Results in this way
 
-
-
-              # Observation Level Value Vars
-              LogLandSize + LogSalesPrice + 
-              
-              # Track Level Vars
-              LogMedianIncome  + LogMedianTractSalesPrice + LogMedianLandSize + 
-              
-              # Observation Level Characteristic Vars
-              
-    
+      - Simple Model
+      - Added Covariates
+      - Propensity Matched using housing characteristics
+  
+  
+Black vs All Other
 ```{r}
 
 Blackobs <- resdata %>% filter(Majority_Black == 1) %>%
-  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW,
+  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW,SALEPRICE,
          Percent_Black, Percent_Hispanic,
          LogLandSize, LogSalesPrice,
          LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
          age,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,
-         TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>% mutate(Group = 1)
+         TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>% 
+  mutate(Group = 1)
 
 Otherobs <- resdata %>% filter(Majority_Black == 0) %>%
-  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW,
+  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW,SALEPRICE,
          Percent_Black, Percent_Hispanic,
          LogLandSize, LogSalesPrice,
          LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
@@ -1558,6 +1553,9 @@ summary(mod1)
 exp(1.5196)
 exp(-0.54747)
 
+mod1 <- glm(ATSDev_Indicator_LOW ~ Group + SALEPRICE , data = df.match, family = "binomial")
+summary(mod1)
+exp(1.462)
 
 sumdat <- summary(match.it)
 
@@ -1574,12 +1572,69 @@ mean(exp(df.match[df.match$Group == 1,]$LogSalesPrice))
 mean(exp(df.match[df.match$Group == 0,]$LogSalesPrice))
 
 
-mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black + LogSalesPrice , data = resdata, family = "binomial")
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_White + LogSalesPrice , data = resdata, family = "binomial")
 summary(mod1)
 
 exp(1.36965)
-exp(0.90432)
+exp(-1.44086)
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black + SALEPRICE + 
+              PctLandSizeDiff_Above + PctLandSizeDiff_Below + 
+              age +
+              KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
+              PRIM_WALL + salemonth + saleyear, data = resdata, family = "binomial")
+summary(mod1)
+
+exp(1.481)
+
+```
+
+```{r}
+Blackobs <- resdata %>% filter(Majority_Black == 1) %>%
+  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW, SALEPRICE,
+         Percent_Black, Percent_Hispanic,
+         LogLandSize, LogSalesPrice,
+         LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
+         age,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,
+         TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>% mutate(Group = 1)
+
+Otherobs <- resdata %>% filter(Majority_White == 1) %>%
+  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW, SALEPRICE,
+         Percent_Black, Percent_Hispanic,
+         LogLandSize, LogSalesPrice,
+         LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
+         age,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,
+         TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>%
+  mutate(Group = 0)
+ 
+
+fitdata <- rbind(Blackobs,Otherobs)
+
+set.seed(1234)
+match.it <- matchit(Group ~
+              LogLandSize + 
+              age + KITCHENS + FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
+              PRIM_WALL + salemonth + saleyear, 
+              data = fitdata, 
+              method="nearest",
+              ratio=1)
+
+df.match <- match.data(match.it, distance= "prop.score")
 
 
+plot(match.it, type="jitter")
+plot(density(df.match$prop.score[df.match$Group==1]))
+plot(density(df.match$prop.score[df.match$Group==0]))
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Group + SALEPRICE, data = df.match, family = "binomial")
+summary(mod1)
+
+exp(1.1359)
+
+mean(df.match$LogSalesPrice)
+exp(11.71623) - exp(11.71623 + 1) 
+
+
+exp(1.816)
 ```
 
