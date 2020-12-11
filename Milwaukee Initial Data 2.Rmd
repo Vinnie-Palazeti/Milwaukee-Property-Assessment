@@ -40,21 +40,21 @@ month <- lubridate::month
 Assignment Configuration
 ```{r}
 #setwd("C:/Users/bcris/OneDrive/Desktop")
-#setwd("C:/Users/Vinnie/Documents")
+setwd("C:/Users/Vinnie/Documents")
 
 
 # Assign Census Data
-#popdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Data.csv") %>% select(-c("X"))
-#povdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
+popdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Data.csv") %>% select(-c("X"))
+povdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
 
 # MAC
-popdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Data.csv")
+#popdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Data.csv")
 
-povdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
+#povdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
 
 
 # Assign Assessment Data
-setwd("/Users/vinniepalazeti/Desktop/Consulting/Data")
+#setwd("/Users/vinniepalazeti/Desktop/Consulting/Data")
 load("res_data_w_geo.dta")
 
 resdata <- data.frame(res_data_w_geo)
@@ -788,5 +788,215 @@ wi.tracts <- wi.tracts %>%
   
 
 ggplot(wi.tracts) + geom_sf()
+```
+
+
+```{r}
+library(cluster)
+
+library(factoextra)
+
+fitdata <- resdata %>% 
+  select(MedianTractSalesPrice,MedianLandSize,MedianTractATSRatio,Percent_Black,Percent_Hispanic,MEDIAN.INCOME,GEO_TRACT) %>%
+  distinct(GEO_TRACT, .keep_all = TRUE)
+ 
+scaled.dat <- fitdata %>% 
+  select(-c("GEO_TRACT")) %>% scale(center = T,scale=T)
+
+fitdata <- as.data.frame(scaled.dat) %>% 
+  mutate(GEO_TRACT = fitdata$GEO_TRACT)
+
+
+Tract_data <- fitdata
+
+Tract_data <- Tract_data %>% column_to_rownames("GEO_TRACT")
+
+distance <- get_dist(Tract_data)
+fviz_dist(distance, gradient = list(low = "#00AFBB", mid = "white", high = "#FC4E07"))
+
+
+k2 <- kmeans(Tract_data, centers = 2, nstart = 25)
+str(k2)
+
+fviz_cluster(k2, data = Tract_data)
+
+
+k3 <- kmeans(Tract_data, centers = 3, nstart = 25)
+k4 <- kmeans(Tract_data, centers = 4, nstart = 25)
+k5 <- kmeans(Tract_data, centers = 5, nstart = 25)
+
+# plots to compare
+p1 <- fviz_cluster(k2, geom = "point", data = Tract_data) + ggtitle("k = 2")
+p2 <- fviz_cluster(k3, geom = "point",  data = Tract_data) + ggtitle("k = 3")
+p3 <- fviz_cluster(k4, geom = "point",  data = Tract_data) + ggtitle("k = 4")
+p4 <- fviz_cluster(k5, geom = "point",  data = Tract_data) + ggtitle("k = 5")
+
+
+p1
+p2
+p3
+p4
+
+
+
+```
+
+
+```{r}
+set.seed(10)
+
+fviz_nbclust(Tract_data, kmeans, method = "wss")
+
+fviz_nbclust(Tract_data, kmeans, method = "silhouette")
+
+```
+
+
+```{r}
+final <- kmeans(Tract_data, 3, nstart = 25)
+fviz_cluster(final, data = Tract_data)
+
+ClusterInfo <- Tract_data %>%
+  mutate(Cluster = final$cluster,
+         GEO_TRACT = fitdata$GEO_TRACT ) %>%
+  select(Cluster,GEO_TRACT)
+```
+
+
+
+
+
+
+Unmatched Logistic Regressions on Majority Black Neighborhoods
+
+
+
+
+```{r}
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black  , data = resdata, family = "binomial")
+summary(mod1)
+
+exp(0.90432)
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black + LogSalesPrice , data = resdata, family = "binomial")
+summary(mod1)
+exp(1.36965)
+
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black + LogSalesPrice + age +
+              KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
+              PRIM_WALL + salemonth + saleyear, data = resdata, family ="binomial")
+summary(mod1)
+exp(1.788)
+```
+
+
+```{r}
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_Black  , data = resdata, family = "binomial")
+summary(mod1)
+exp(0.3811)
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_Black + LogSalesPrice , data = resdata, family = "binomial")
+summary(mod1)
+exp(-0.81633)
+
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_Black + LogSalesPrice + age +
+              KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
+              PRIM_WALL + salemonth + saleyear, data = resdata, family = "binomial")
+summary(mod1)
+exp(-1.045)
+```
+  
+```{r}
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_White  , data = resdata, family = "binomial")
+summary(mod1)
+exp(-0.96450)
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_White + LogSalesPrice , data = resdata, family = "binomial")
+summary(mod1)
+exp(-1.44086)
+
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_White + LogSalesPrice + age +
+              KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
+              PRIM_WALL + salemonth + saleyear, data = resdata, family = "binomial")
+summary(mod1)
+exp(-1.644)
+```
+```{r}
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_White  , data = resdata, family = "binomial")
+summary(mod1)
+exp(-0.24887)
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_White + LogSalesPrice , data = resdata, family = "binomial")
+summary(mod1)
+exp(0.9976)
+
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_White + LogSalesPrice + age +
+              KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
+              PRIM_WALL + salemonth + saleyear, data = resdata, family = "binomial")
+summary(mod1)
+exp(1.133)
+```
+  
+
+
+
+
+
+```{r}
+Blackobs <- resdata %>% filter(Majority_Black == 1) %>%
+  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW, ATSDev_Indicator_HIGH, SALEPRICE,
+         Percent_Black, Percent_Hispanic,
+         LogLandSize, LogSalesPrice,
+         LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
+         age,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,
+         TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>% mutate(Group = 1)
+
+Otherobs <- resdata %>% filter(Majority_White == 1) %>%
+  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW, ATSDev_Indicator_HIGH, SALEPRICE,
+         Percent_Black, Percent_Hispanic,
+         LogLandSize, LogSalesPrice,
+         LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
+         age,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,
+         TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>%
+  mutate(Group = 0)
+ 
+
+fitdata <- rbind(Blackobs,Otherobs)
+
+set.seed(1234)
+match.it <- matchit(Group ~
+              LogLandSize + 
+              age + KITCHENS + FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
+              PRIM_WALL + salemonth + saleyear, 
+              data = fitdata, 
+              method="nearest",
+              ratio=1)
+
+df.match <- match.data(match.it, distance= "prop.score")
+
+
+plot(match.it, type="jitter")
+plot(density(df.match$prop.score[df.match$Group==1]))
+plot(density(df.match$prop.score[df.match$Group==0]))
+
+mod1 <- glm(ATSDev_Indicator_LOW ~ Group + LogSalesPrice, data = df.match, family = "binomial")
+
+summary(mod1)
+exp(1.7698)
+
+mod1 <- glm(ATSDev_Indicator_HIGH ~ Group + LogSalesPrice, data = df.match, family = "binomial")
+
+summary(mod1)
+exp(-0.9927)
+
+
 ```
 

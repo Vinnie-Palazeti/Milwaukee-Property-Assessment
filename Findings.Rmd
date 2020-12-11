@@ -156,7 +156,7 @@ ggplot(resdata, aes(SALEDATE)) +
 ggplot(resdata, aes(SALEDATE, fill = factor(atsratiodecile))) +
   geom_histogram(bins=100) +
   theme(legend.title=element_blank()) + 
-  xlab("Sale Date & ATS Ratio") + 
+  xlab(" ")+
   ylab("Frequency")
 
 ggplot(resdata, aes(YEARBLT, fill = factor(QUAL_recode, level = level_order_qual))) +
@@ -600,13 +600,13 @@ corrplot(Obs_cors,method='circle', type = 'lower', tl.col="black")
 
 corrplot(Obs_cors,method='circle', tl.col="black")
 
-Tract_independents <- resdata  %>% select(GEO_TRACT,MedianATSRatio,MEDIAN.INCOME,Percent_Black,Percent_NotHispanic_White,Percent_Hispanic,Percent_TotalPOPIncomeBelowPovRate)
+Tract_independents <- resdata  %>% select(GEO_TRACT,MedianTractATSRatio,MEDIAN.INCOME,Percent_Black,Percent_NotHispanic_White,Percent_Hispanic,Percent_TotalPOPIncomeBelowPovRate)
 
 Tract_independents <- Tract_independents %>% 
   select(-c(GEO_TRACT)) %>%
   rename(`Median Income` = `MEDIAN.INCOME`,
          `Percent Black` = `Percent_Black`,
-         `Median ATS Ratio` = `MedianATSRatio`,
+         `Median ATS Ratio` = `MedianTractATSRatio`,
          `Percent White` = `Percent_NotHispanic_White`,
          `Percent Hispanic` = `Percent_Hispanic`,
          `Percent Income Poverty` = `Percent_TotalPOPIncomeBelowPovRate`
@@ -1423,16 +1423,14 @@ ggplot(resdata, aes(atsratio)) +
   xlim(0.5,1.4) + 
   ylim(0,115)+
   xlab("ATS Ratio") +
-  ylab("Frequency") + 
-  ggtitle("Distribution of ATS Ratio")
+  ylab("Frequency") 
 
 ggplot(filter(resdata, Majority_Black ==1), aes(atsratio)) +
   geom_histogram(bins = 200)+ 
   xlim(0.5,1.4) + 
   ylim(0,80)+
   xlab("ATS Ratio") +
-  ylab("Frequency") + 
-  ggtitle("Distribution of ATS Ratio for Majority Black Neighborhoods")
+  ylab("Frequency") 
 
 
 ggplot(filter(resdata, Majority_Black ==1), aes(atsratio)) +
@@ -1440,16 +1438,14 @@ ggplot(filter(resdata, Majority_Black ==1), aes(atsratio)) +
   xlim(0.5,1.4) + 
   ylim(0,35)+
   xlab("ATS Ratio") +
-  ylab("Frequency") + 
-  ggtitle("Scaled Down: Distribution of ATS Ratio for Majority Black Neighborhoods")
+  ylab("Frequency") 
 
 ggplot(filter(resdata, Majority_Black ==0), aes(atsratio)) +
   geom_histogram(bins = 200)+ 
   xlim(0.5,1.4) + 
   ylim(0,80)+
   xlab("ATS Ratio") +
-  ylab("Frequency") + 
-  ggtitle("Distribution of ATS Ratio for Majority Non-Black Neighborhoods")
+  ylab("Frequency") 
 
 
 ggplot(filter(resdata, Majority_White ==1), aes(atsratio)) +
@@ -1457,130 +1453,284 @@ ggplot(filter(resdata, Majority_White ==1), aes(atsratio)) +
   xlim(0.5,1.4) + 
   ylim(0,80)+
   xlab("ATS Ratio") +
-  ylab("Frequency")+ 
-  ggtitle("Distribution of ATS Ratio for Majority White Neighborhoods")
+  ylab("Frequency")
 ```
   
-Unmatched Logistic Regressions
+Percent Black
+ATSDev_Indicator_LOW
 ```{r}
 
-mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black  , data = resdata, family = "binomial")
-summary(mod1)
+### Simple Model
 
-exp(0.90432)
-
-mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black + LogSalesPrice , data = resdata, family = "binomial")
-summary(mod1)
-exp(1.36965)
-
-
-mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_Black + LogSalesPrice + age +
-              KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
-              PRIM_WALL + salemonth + saleyear, data = resdata, family = "binomial")
-summary(mod1)
-exp(1.788)
-```
-```{r}
-
-mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_Black  , data = resdata, family = "binomial")
-summary(mod1)
-exp(0.3811)
-
-mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_Black + LogSalesPrice , data = resdata, family = "binomial")
-summary(mod1)
-exp(-0.81633)
-
-
-mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_Black + LogSalesPrice + age +
-              KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
-              PRIM_WALL + salemonth + saleyear, data = resdata, family = "binomial")
-summary(mod1)
-exp(-1.045)
-```
-  
-```{r}
-
-mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_White  , data = resdata, family = "binomial")
-summary(mod1)
-exp(-0.96450)
-
-mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_White + LogSalesPrice , data = resdata, family = "binomial")
-summary(mod1)
-exp(-1.44086)
-
-
-mod1 <- glm(ATSDev_Indicator_LOW ~ Majority_White + LogSalesPrice + age +
-              KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
-              PRIM_WALL + salemonth + saleyear, data = resdata, family = "binomial")
-summary(mod1)
-exp(-1.644)
-```
-```{r}
-
-mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_White  , data = resdata, family = "binomial")
-summary(mod1)
-exp(-0.24887)
-
-mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_White + LogSalesPrice , data = resdata, family = "binomial")
-summary(mod1)
-exp(0.9976)
-
-
-mod1 <- glm(ATSDev_Indicator_HIGH ~ Majority_White + LogSalesPrice + age +
-              KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
-              PRIM_WALL + salemonth + saleyear, data = resdata, family = "binomial")
-summary(mod1)
-exp(1.133)
-```
-  
-
-```{r}
-Blackobs <- resdata %>% filter(Majority_Black == 1) %>%
-  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW, ATSDev_Indicator_HIGH, SALEPRICE,
-         Percent_Black, Percent_Hispanic,
-         LogLandSize, LogSalesPrice,
-         LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
-         age,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,
-         TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>% mutate(Group = 1)
-
-Otherobs <- resdata %>% filter(Majority_White == 1) %>%
-  select(LogAssessedVal, ATSDev_Indicator, ATSDev_Indicator_LOW, ATSDev_Indicator_HIGH, SALEPRICE,
-         Percent_Black, Percent_Hispanic,
-         LogLandSize, LogSalesPrice,
-         LogMedianIncome, LogMedianTractSalesPrice, LogMedianLandSize,
-         age,KITCHEN_FAC, COND_FAC, QUAL_FAC, BATH_FAC,
-         TYPE_FAC, KITCHENS, FULLBATHS, BEDROOMS,HALFBATH,PRIM_WALL,salemonth,saleyear) %>%
-  mutate(Group = 0)
+fitdata <- resdata %>% 
+  select(Percent_Black) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
  
+covariates <- resdata %>% select(ATSDev_Indicator_LOW,GEO_TRACT)
 
-fitdata <- rbind(Blackobs,Otherobs)
+fitdata <- cbind(fitdata,covariates)
 
-set.seed(1234)
-match.it <- matchit(Group ~
-              LogLandSize + 
-              age + KITCHENS + FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + 
-              PRIM_WALL + salemonth + saleyear, 
-              data = fitdata, 
-              method="nearest",
-              ratio=1)
-
-df.match <- match.data(match.it, distance= "prop.score")
+mod1 <- glmer(ATSDev_Indicator_LOW ~ Percent_Black + (1|GEO_TRACT),nAGQ = 0,data = fitdata, family ="binomial")
+summary(mod1)
+exp(0.38058)
 
 
-plot(match.it, type="jitter")
-plot(density(df.match$prop.score[df.match$Group==1]))
-plot(density(df.match$prop.score[df.match$Group==0]))
+### Intermediate Model
 
-mod1 <- glm(ATSDev_Indicator_LOW ~ Group + LogSalesPrice, data = df.match, family = "binomial")
+fitdata <- resdata %>% 
+  select(Percent_Black,
+         LogSalesPrice) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select(ATSDev_Indicator_LOW,GEO_TRACT)
+
+fitdata <- cbind(fitdata,covariates)
+
+mod1 <- glmer(ATSDev_Indicator_LOW ~ Percent_Black + LogSalesPrice + (1|GEO_TRACT),nAGQ = 0,data = fitdata, family ="binomial")
+summary(mod1)
+exp(1.17450)
+
+
+### Specific Model
+
+fitdata <- resdata %>% 
+  select(Percent_Black,
+         LogLandSize,LogMedianIncome,age,LogSalesPrice) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select( KITCHEN_FAC,KITCHENS,COND_FAC,FULLBATHS,HALFBATH,QUAL_FAC,TYPE_FAC,PRIM_WALL,salemonth,saleyear, BEDROOMS,ATSDev_Indicator_LOW,GEO_TRACT)
+
+fitdata <- cbind(fitdata,covariates)
+
+mod1 <- glmer(ATSDev_Indicator_LOW ~ Percent_Black + LogSalesPrice +LogLandSize + LogMedianIncome+ age +  KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear+(1|GEO_TRACT),nAGQ = 0,data = fitdata, family ="binomial")
 
 summary(mod1)
-exp(1.7698)
+exp(1.54064)
 
-mod1 <- glm(ATSDev_Indicator_HIGH ~ Group + LogSalesPrice, data = df.match, family = "binomial")
+```
+
+
+Percent Black
+ATSDev_Indicator_HIGH
+```{r}
+### Simple Model
+
+fitdata <- resdata %>% 
+  select(Percent_Black) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select(ATSDev_Indicator_HIGH,GEO_TRACT)
+
+fitdata <- cbind(fitdata,covariates)
+
+mod1 <- glmer(ATSDev_Indicator_HIGH ~ Percent_Black + (1|GEO_TRACT),nAGQ = 0,data = fitdata, family ="binomial")
+summary(mod1)
+exp(0.21934)
+
+
+### Intermediate Model
+
+fitdata <- resdata %>% 
+  select(Percent_Black,
+         LogSalesPrice) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select(ATSDev_Indicator_HIGH,GEO_TRACT)
+
+fitdata <- cbind(fitdata,covariates)
+
+mod1 <- glmer(ATSDev_Indicator_HIGH ~ Percent_Black + LogSalesPrice + (1|GEO_TRACT),nAGQ = 0,data = fitdata, family ="binomial")
+summary(mod1)
+exp(-1.03043)
+
+
+### Specific Model
+
+fitdata <- resdata %>% 
+  select(Percent_Black,
+         LogLandSize,LogMedianIncome,age,LogSalesPrice) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select( KITCHEN_FAC,KITCHENS,COND_FAC,FULLBATHS,HALFBATH,QUAL_FAC,TYPE_FAC,PRIM_WALL,salemonth,saleyear, BEDROOMS,ATSDev_Indicator_HIGH,GEO_TRACT)
+
+fitdata <- cbind(fitdata,covariates)
+
+mod1 <- glmer(ATSDev_Indicator_HIGH ~ Percent_Black + LogSalesPrice +LogLandSize + LogMedianIncome+ age +  KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear+(1|GEO_TRACT),nAGQ = 0,data = fitdata, family ="binomial")
 
 summary(mod1)
-exp(-0.9927)
+exp(-1.33922)
+
+```
+
+
+
+
+Percent White
+ATSDev_Indicator_LOW
+```{r}
+### Simple Model
+
+fitdata <- resdata %>% 
+  select(Percent_White) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select(ATSDev_Indicator_LOW,GEO_TRACT)
+
+fitdata <- cbind(fitdata,covariates)
+
+mod1 <- glmer(ATSDev_Indicator_LOW ~ Percent_White + (1|GEO_TRACT),nAGQ = 0,data = fitdata, family ="binomial")
+summary(mod1)
+exp(-0.47538)
+
+
+### Intermediate Model
+
+fitdata <- resdata %>% 
+  select(Percent_White,
+         LogSalesPrice) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select(ATSDev_Indicator_LOW,GEO_TRACT)
+
+fitdata <- cbind(fitdata,covariates)
+
+mod1 <- glmer(ATSDev_Indicator_LOW ~ Percent_White + LogSalesPrice + (1|GEO_TRACT),nAGQ = 0,data = fitdata, family ="binomial")
+summary(mod1)
+exp(-1.43596)
+
+
+### Specific Model
+
+fitdata <- resdata %>% 
+  select(Percent_White,
+         LogLandSize,LogMedianIncome,age,LogSalesPrice) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select( KITCHEN_FAC,KITCHENS,COND_FAC,FULLBATHS,HALFBATH,QUAL_FAC,TYPE_FAC,PRIM_WALL,salemonth,saleyear, BEDROOMS,ATSDev_Indicator_LOW,GEO_TRACT)
+
+fitdata <- cbind(fitdata,covariates)
+
+mod1 <- glmer(ATSDev_Indicator_LOW ~ Percent_White + LogSalesPrice +LogLandSize + LogMedianIncome+ age +  KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear+(1|GEO_TRACT),nAGQ = 0,data = fitdata, family ="binomial")
+
+summary(mod1)
+exp(-2.03280)
+
+```
+
+
+
+Percent White
+ATSDev_Indicator_HIGH
+```{r}
+### Simple Model
+
+fitdata <- resdata %>% 
+  select(Percent_White) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select(ATSDev_Indicator_HIGH,GEO_TRACT)
+
+fitdata <- cbind(fitdata,covariates)
+
+mod1 <- glmer(ATSDev_Indicator_HIGH ~ Percent_White + (1|GEO_TRACT),nAGQ = 0,data = fitdata, family ="binomial")
+summary(mod1)
+exp(-0.22584)
+
+
+### Intermediate Model
+
+fitdata <- resdata %>% 
+  select(Percent_White,
+         LogSalesPrice) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select(ATSDev_Indicator_HIGH,GEO_TRACT)
+
+fitdata <- cbind(fitdata,covariates)
+
+mod1 <- glmer(ATSDev_Indicator_HIGH ~ Percent_White + LogSalesPrice + (1|GEO_TRACT),nAGQ = 0,data = fitdata, family ="binomial")
+summary(mod1)
+exp(1.25121)
+
+
+### Specific Model
+
+fitdata <- resdata %>% 
+  select(Percent_White,
+         LogLandSize,LogMedianIncome,age,LogSalesPrice) %>% 
+  scale(center = T,scale=T) %>%
+  as.data.frame()
+ 
+covariates <- resdata %>% select( KITCHEN_FAC,KITCHENS,COND_FAC,FULLBATHS,HALFBATH,QUAL_FAC,TYPE_FAC,PRIM_WALL,salemonth,saleyear, BEDROOMS,ATSDev_Indicator_HIGH,GEO_TRACT)
+
+fitdata <- cbind(fitdata,covariates)
+
+mod1 <- glmer(ATSDev_Indicator_HIGH ~ Percent_White + LogSalesPrice +LogLandSize + LogMedianIncome+ age +  KITCHENS+ FULLBATHS+ HALFBATH + BEDROOMS + KITCHEN_FAC + COND_FAC + QUAL_FAC + TYPE_FAC + PRIM_WALL + salemonth + saleyear+(1|GEO_TRACT),nAGQ = 0,data = fitdata, family ="binomial")
+
+summary(mod1)
+exp(1.61931)
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+Y <- resdata$ATSDev_Indicator_LOW
+#Y.hat <- mod1$fitted.values
+Y.hat <- fitted(mod1)
+Sep.Data <- data.frame(Y,Y.hat)
+Sep.Data <- Sep.Data[order(Y.hat, +Y), ]
+
+col<-c(rgb(red = 254, green = 232, blue = 200, max = 255), 
+       rgb(red = 227, green = 74, blue = 51, max = 255))  
+
+
+SepPlot <- ggplot(data=Sep.Data) +
+  geom_rect(aes(xmin = 0, xmax = seq(length.out = length(Y)), ymin = 0, ymax = 1),
+    fill = "#FEE8C8") +
+  geom_linerange(aes(color = factor(Y), ymin = 0, ymax = 1, x = seq(length.out = length(Y))),
+    alpha = 0.5) +
+  geom_line(aes(y = Y.hat, x = seq(length.out = length(Y))), lwd = 0.8) +
+  scale_color_manual(values = col) +
+  scale_y_continuous("Y-hat\n", breaks = c(0, 0.25, 0.5, 0.75, 1.0)) + 
+  scale_x_continuous("", breaks = NULL) +
+  theme(legend.position = "none", panel.background = element_blank(), panel.grid = element_blank(),
+    axis.title.y = element_text(face = "bold", angle = 90))
+
+SepPlot
+
 
 
 ```
+
+
+
+
+
 
