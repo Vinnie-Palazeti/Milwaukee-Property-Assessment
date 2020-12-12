@@ -11,3 +11,5 @@ and ethnicity could help find a causal link for this difference.
 
 
 ![alt text](https://github.com/Vinnie-Palazeti/Milwaukee-Property-Assessment/raw/master/Visuals/Percent%20Black%20Population%20Final.png)
+
+![alt text](https://github.com/Vinnie-Palazeti/Milwaukee-Property-Assessment/raw/master/Visuals/Percent%20White%20Population%20Final.png)
