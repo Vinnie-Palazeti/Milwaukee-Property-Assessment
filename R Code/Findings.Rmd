@@ -222,9 +222,9 @@ Census Data visualizations
 
 Shapefile
 ```{r}
-#Mil_County<-st_read("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Shapefiles/Census_Tracts.shp")
+Mil_County<-st_read("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Shapefiles/Census_Tracts.shp")
 
-Mil_County<-st_read("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Shapefiles/Census_Tracts.shp")
+#Mil_County<-st_read("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Shapefiles/Census_Tracts.shp")
 
 #Makeup
 st_geometry_type(Mil_County)
