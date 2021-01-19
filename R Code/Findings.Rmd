@@ -1248,7 +1248,9 @@ ggplot(resdata, aes(atsratio)) +
   xlim(0.5,1.4) + 
   ylim(0,115)+
   xlab("ATS Ratio") +
-  ylab("Frequency") 
+  ylab("Frequency")
+
+
 
 ggplot(filter(resdata, Majority_Black ==1), aes(atsratio)) +
   geom_histogram(bins = 200)+ 
@@ -1265,6 +1267,8 @@ ggplot(filter(resdata, Majority_Black ==1), aes(atsratio)) +
   xlab("ATS Ratio") +
   ylab("Frequency") 
 
+
+
 ggplot(filter(resdata, Majority_Black ==0), aes(atsratio)) +
   geom_histogram(bins = 200)+ 
   xlim(0.5,1.4) + 
@@ -1279,6 +1283,9 @@ ggplot(filter(resdata, Majority_White ==1), aes(atsratio)) +
   ylim(0,80)+
   xlab("ATS Ratio") +
   ylab("Frequency")
+
+ggsave("White_Rescale_ATS_Ratio_Dist.jpg",dpi=320, width = 4, height = 2)
+
 ```
   
 Percent Black

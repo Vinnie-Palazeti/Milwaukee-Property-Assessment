@@ -40,21 +40,21 @@ month <- lubridate::month
 Assignment Configuration
 ```{r}
 #setwd("C:/Users/bcris/OneDrive/Desktop")
-setwd("C:/Users/Vinnie/Documents")
+#setwd("C:/Users/Vinnie/Documents")
 
 
 # Assign Census Data
-popdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Data/Census Data.csv") %>% select(-c("X"))
-povdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Data/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
+#popdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Data/Census Data.csv") %>% select(-c("X"))
+#povdat <- read.csv("C:/Users/Vinnie/Desktop/GitHub/Milwaukee-Property-Assessment/Census Data/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
 
 # MAC
-#popdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Data.csv")
+popdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Data/Census Data.csv")
 
-#povdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
+povdat <- read.csv("/Users/vinniepalazeti/Desktop/GitGit/Milwaukee-Property-Assessment/Census Data/Census Poverty Data.csv") %>% select(-c("X","STATE","COUNTY","NAME","MEDIAN.INCOME"))
 
 
 # Assign Assessment Data
-#setwd("/Users/vinniepalazeti/Desktop/Consulting/Data")
+setwd("/Users/vinniepalazeti/Desktop/Consulting/Data")
 load("res_data_w_geo.dta")
 
 resdata <- data.frame(res_data_w_geo)
